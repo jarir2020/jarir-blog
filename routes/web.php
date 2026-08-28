@@ -57,6 +57,7 @@ Route::prefix('api')->group(function () {
 
         Route::get('/admin/subscribers', [\App\Http\Controllers\Api\Admin\SubscriberController::class, 'index']);
         Route::get('/admin/tags', [\App\Http\Controllers\Api\Admin\TagController::class, 'index']);
+        Route::get('/admin/stats', [\App\Http\Controllers\Api\Admin\StatsController::class, 'show']);
     });
 });
 

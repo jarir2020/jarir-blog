@@ -75,6 +75,11 @@ export const useApi = () => {
             const { data } = await api.post('/api/subscribe', { email });
             return data;
         },
+
+        async getAdminStats() {
+            const { data } = await api.get('/api/admin/stats');
+            return data;
+        },
     };
 };
 

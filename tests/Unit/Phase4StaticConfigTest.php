@@ -58,6 +58,7 @@ class Phase4StaticConfigTest extends TestCase
         $this->assertStringContainsString("'/admin/me'", $routes);
         $this->assertStringContainsString("'/admin/subscribers'", $routes);
         $this->assertStringContainsString("'/admin/tags'", $routes);
+        $this->assertStringContainsString("'/admin/stats'", $routes);
     }
 
     public function test_admin_spa_catchall_route_registered(): void
@@ -73,6 +74,19 @@ class Phase4StaticConfigTest extends TestCase
         $this->assertFileExists(self::PROJECT_ROOT.'resources/js/views/admin/AdminPosts.vue');
         $this->assertFileExists(self::PROJECT_ROOT.'resources/js/views/admin/AdminPostEdit.vue');
         $this->assertFileExists(self::PROJECT_ROOT.'resources/js/views/admin/AdminComments.vue');
+        $this->assertFileExists(self::PROJECT_ROOT.'resources/js/components/admin/AdminSidebar.vue');
+    }
+
+    public function test_admin_layout_uses_sidebar_component(): void
+    {
+        $layout = file_get_contents(self::PROJECT_ROOT.'resources/js/views/admin/AdminLayout.vue');
+        $this->assertStringContainsString('AdminSidebar', $layout);
+    }
+
+    public function test_admin_dashboard_consumes_stats_endpoint(): void
+    {
+        $dashboard = file_get_contents(self::PROJECT_ROOT.'resources/js/views/admin/AdminDashboard.vue');
+        $this->assertStringContainsString('/api/admin/stats', $dashboard);
     }
 
     public function test_router_registers_admin_children(): void
