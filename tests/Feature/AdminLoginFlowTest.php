@@ -134,4 +134,83 @@ class AdminLoginFlowTest extends TestCase
         $response->assertRedirect('/admin');
         $this->assertAuthenticatedAs(User::where('email', 'demo@jarir.test')->first());
     }
+
+    public function test_admin_login_renders_themed_view_not_spa_shell(): void
+    {
+        // /admin/login must NOT be served by the SPA catch-all. It must
+        // be a real, themed Blade page so that someone who lands on
+        // /admin/login directly (e.g. a bookmarked URL) sees a working
+        // login form, not the empty Vue mount + a router warning.
+        $response = $this->get('/admin/login')->assertOk();
+        $this->assertStringContainsString('name="email"', $response->getContent());
+        $this->assertStringContainsString('name="password"', $response->getContent());
+        $this->assertStringContainsString('Admin sign-in', $response->getContent());
+        $this->assertStringNotContainsString('No match found', $response->getContent());
+    }
+
+    public function test_admin_login_includes_intended_hidden_field(): void
+    {
+        $response = $this->get('/admin/login?intended=/admin/posts')->assertOk();
+        $this->assertStringContainsString(
+            'name="intended" value="/admin/posts"',
+            $response->getContent()
+        );
+    }
+
+    public function test_admin_login_omits_intended_when_not_provided(): void
+    {
+        $response = $this->get('/admin/login')->assertOk();
+        $this->assertStringNotContainsString('name="intended"', $response->getContent());
+    }
+
+    public function test_admin_login_uses_blog_theme_classes(): void
+    {
+        $response = $this->get('/admin/login')->assertOk();
+        // blue-600 primary button, gray-50 page background, no figtree
+        // or indigo-* classes that the stock Breeze layout would emit.
+        $this->assertStringContainsString('bg-blue-600', $response->getContent());
+        $this->assertStringContainsString('bg-gray-50', $response->getContent());
+        $this->assertStringNotContainsString('bg-indigo-500', $response->getContent());
+        $this->assertStringNotContainsString('fonts.bunny.net', $response->getContent());
+    }
+
+    public function test_login_uses_blog_theme_classes(): void
+    {
+        $response = $this->get('/login')->assertOk();
+        $this->assertStringContainsString('bg-blue-600', $response->getContent());
+        $this->assertStringContainsString('bg-gray-50', $response->getContent());
+        $this->assertStringNotContainsString('bg-indigo-500', $response->getContent());
+        $this->assertStringNotContainsString('fonts.bunny.net', $response->getContent());
+    }
+
+    public function test_login_form_preserves_intended_through_post(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => 'password',
+        ]);
+
+        // The form action is /login, so the intended query is lost on
+        // POST. The themed view puts it in a hidden form field instead.
+        $response = $this->post('/login', [
+            'email' => 'admin@example.com',
+            'password' => 'password',
+            'intended' => '/admin',
+        ]);
+
+        $response->assertRedirect('/admin');
+    }
+
+    public function test_admin_login_uses_dark_header(): void
+    {
+        $response = $this->get('/admin/login')->assertOk();
+        $this->assertStringContainsString('bg-gray-900', $response->getContent());
+    }
+
+    public function test_public_login_uses_light_header(): void
+    {
+        $response = $this->get('/login')->assertOk();
+        $this->assertStringContainsString('bg-white shadow-sm', $response->getContent());
+        $this->assertStringNotContainsString('Admin sign-in', $response->getContent());
+    }
 }

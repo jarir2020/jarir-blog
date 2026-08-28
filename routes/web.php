@@ -64,7 +64,7 @@ Route::prefix('api')->group(function () {
 // /verify-email, /confirm-password, /logout). MUST be loaded before the
 // SPA catch-all below, otherwise the catch-all will swallow them and serve
 // the empty Vue shell instead of the Blade login form.
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 // Phase 3 — RSS / Atom feed at the top level, not under /api.
 Route::get('/feed.xml', [\App\Http\Controllers\FeedController::class, 'index']);
@@ -79,6 +79,14 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Phase 4 — admin sign-in page. Served as a themed Blade view (the same
+// `auth.login` view the public /login uses, but with the admin chrome)
+// so the URL renders correctly even when reached directly. Must be
+// registered BEFORE the /admin/{any?} SPA catch-all below.
+Route::get('/admin/login', function () {
+    return view('auth.login', ['isAdmin' => true]);
+})->name('admin.login');
 
 // Phase 4 — admin SPA. The Vue admin app lives under /admin and is served
 // by the same welcome blade. The SPA fetches /api/admin/me on mount to
