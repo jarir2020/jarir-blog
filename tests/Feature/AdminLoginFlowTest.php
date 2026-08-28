@@ -210,7 +210,62 @@ class AdminLoginFlowTest extends TestCase
     public function test_public_login_uses_light_header(): void
     {
         $response = $this->get('/login')->assertOk();
-        $this->assertStringContainsString('bg-white shadow-sm', $response->getContent());
+        // The public site-layout uses a white header with a bottom border.
+        $this->assertStringContainsString('bg-white', $response->getContent());
+        $this->assertStringNotContainsString('bg-gray-900', $response->getContent());
         $this->assertStringNotContainsString('Admin sign-in', $response->getContent());
+    }
+
+    public function test_admin_user_lands_on_admin_after_login(): void
+    {
+        // No ?intended= passed. The controller should detect the admin
+        // role and redirect there directly, so users don't have to
+        // click through /dashboard to get to their work area.
+        User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => 'password',
+            'role' => 'admin',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'admin@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect('/admin');
+    }
+
+    public function test_regular_user_lands_on_dashboard_after_login(): void
+    {
+        User::factory()->create([
+            'email' => 'user@example.com',
+            'password' => 'password',
+            'role' => 'user',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'user@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+    }
+
+    public function test_login_intended_takes_precedence_over_role_default(): void
+    {
+        // An admin with ?intended=/admin/posts should go to /admin/posts,
+        // not /admin. Lets the user land where they were headed.
+        User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => 'password',
+            'role' => 'admin',
+        ]);
+
+        $response = $this->post('/login?intended=/admin/posts', [
+            'email' => 'admin@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect('/admin/posts');
     }
 }

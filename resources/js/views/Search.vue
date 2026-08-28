@@ -1,4 +1,5 @@
 <template>
+    <AppHeader />
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900">Search</h1>
@@ -67,6 +68,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import AppHeader from '../components/AppHeader.vue';
 import PostCard from '../components/PostCard.vue';
 import useApi from '../composables/useApi';
 

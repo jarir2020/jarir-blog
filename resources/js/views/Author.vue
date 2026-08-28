@@ -1,4 +1,5 @@
 <template>
+    <AppHeader />
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">
             {{ error }}
@@ -48,6 +49,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import AppHeader from '../components/AppHeader.vue';
 import PostCard from '../components/PostCard.vue';
 import useApi from '../composables/useApi';
 

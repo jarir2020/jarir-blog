@@ -74,13 +74,15 @@ class Phase4StaticConfigTest extends TestCase
         $this->assertFileExists(self::PROJECT_ROOT.'resources/js/views/admin/AdminPosts.vue');
         $this->assertFileExists(self::PROJECT_ROOT.'resources/js/views/admin/AdminPostEdit.vue');
         $this->assertFileExists(self::PROJECT_ROOT.'resources/js/views/admin/AdminComments.vue');
-        $this->assertFileExists(self::PROJECT_ROOT.'resources/js/components/admin/AdminSidebar.vue');
     }
 
-    public function test_admin_layout_uses_sidebar_component(): void
+    public function test_admin_layout_uses_admin_context_store(): void
     {
         $layout = file_get_contents(self::PROJECT_ROOT.'resources/js/views/admin/AdminLayout.vue');
-        $this->assertStringContainsString('AdminSidebar', $layout);
+        $this->assertStringContainsString('setAdminContext', $layout);
+        // The store is imported from the composable file.
+        $composable = file_get_contents(self::PROJECT_ROOT.'resources/js/composables/adminContext.js');
+        $this->assertStringContainsString('export const useAdminContext', $composable);
     }
 
     public function test_admin_dashboard_consumes_stats_endpoint(): void

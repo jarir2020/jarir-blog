@@ -88,14 +88,19 @@ Route::middleware('auth')->group(function () {
 // so the URL renders correctly even when reached directly. Must be
 // registered BEFORE the /admin/{any?} SPA catch-all below.
 Route::get('/admin/login', function () {
-    return view('auth.login', ['isAdmin' => true]);
+    return view('auth.login', [
+        'isAdmin' => true,
+        'intended' => request()->query('intended'),
+    ]);
 })->name('admin.login');
 
-// Phase 4 — admin SPA. The Vue admin app lives under /admin and is served
-// by the same welcome blade. The SPA fetches /api/admin/me on mount to
-// decide whether the current user is allowed in.
+// Phase 4 — admin SPA. The Vue admin app lives under /admin and is
+// served by the admin layout (dark sidebar + topbar). The SPA fetches
+// /api/admin/me on mount to decide whether the current user is allowed
+// in. The server-rendered chrome acts as a fallback if the JS bundle
+// is slow to load.
 Route::get('/admin/{any?}', function () {
-    return view('welcome');
+    return view('admin');
 })->where('any', '.*');
 
 // SPA catch-all - must come last so it does not shadow the API or auth routes.

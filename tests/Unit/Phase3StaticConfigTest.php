@@ -37,17 +37,18 @@ class Phase3StaticConfigTest extends TestCase
 
     public function test_welcome_blade_has_open_graph_and_twitter_meta(): void
     {
-        $blade = file_get_contents(self::PROJECT_ROOT.'resources/views/welcome.blade.php');
-        $this->assertStringContainsString('og:title', $blade);
-        $this->assertStringContainsString('og:description', $blade);
-        $this->assertStringContainsString('twitter:card', $blade);
-        $this->assertStringContainsString('application/atom+xml', $blade);
+        // The OG/Twitter meta now lives in the shared site-layout component.
+        $layout = file_get_contents(self::PROJECT_ROOT.'resources/views/components/site/site-layout.blade.php');
+        $this->assertStringContainsString('og:title', $layout);
+        $this->assertStringContainsString('og:description', $layout);
+        $this->assertStringContainsString('twitter:card', $layout);
+        $this->assertStringContainsString('application/atom+xml', $layout);
     }
 
     public function test_app_footer_links_to_rss(): void
     {
-        $app = file_get_contents(self::PROJECT_ROOT.'resources/js/App.vue');
-        $this->assertStringContainsString('/feed.xml', $app);
+        $layout = file_get_contents(self::PROJECT_ROOT.'resources/views/components/site/site-layout.blade.php');
+        $this->assertStringContainsString('/feed.xml', $layout);
     }
 
     public function test_use_api_exposes_phase3_helpers(): void

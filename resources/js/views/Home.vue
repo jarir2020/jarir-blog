@@ -1,4 +1,5 @@
 <template>
+    <AppHeader />
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Hero Section -->
         <div class="bg-blue-600 rounded-lg shadow-lg p-8 mb-12 text-white">
@@ -67,6 +68,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import AppHeader from '../components/AppHeader.vue';
 import PostCard from '../components/PostCard.vue';
 import useApi from '../composables/useApi';
 
