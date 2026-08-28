@@ -71,8 +71,10 @@ Route::get('/feed.xml', [\App\Http\Controllers\FeedController::class, 'index']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
-        // Placeholder dashboard — replaced with a real blog admin in Phase 4.
-        return view('welcome');
+        $user = request()->user();
+        $isAdmin = $user?->isAdmin() ?? false;
+
+        return view('dashboard', ['isAdmin' => $isAdmin]);
     })->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
