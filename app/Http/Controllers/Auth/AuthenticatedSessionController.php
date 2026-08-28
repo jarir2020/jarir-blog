@@ -28,6 +28,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // The admin SPA redirects to /login?intended=/admin when it
+        // detects the user is not signed in. Honour that so the user
+        // lands back where they were headed, instead of always on the
+        // dashboard.
+        $intended = $request->query('intended');
+        if (is_string($intended) && str_starts_with($intended, '/') && ! str_starts_with($intended, '//')) {
+            return redirect()->to($intended);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

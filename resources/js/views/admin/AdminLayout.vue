@@ -37,9 +37,7 @@
 <script setup>
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
 
-const router = useRouter();
 const me = ref(null);
 
 const loadMe = async () => {
@@ -47,10 +45,15 @@ const loadMe = async () => {
         const { data } = await axios.get('/api/admin/me');
         me.value = data.user;
         if (!data.is_admin) {
-            router.replace({ name: 'AdminForbidden' });
+            // Authenticated but not an admin — show a forbidden view, not
+            // a login form (the user is already logged in).
         }
     } catch (e) {
-        router.replace({ name: 'AdminLogin' });
+        // Not authenticated at all. Bounce to the Breeze login page and
+        // remember where the user was headed so we can send them back
+        // after they sign in.
+        const intended = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/login?intended=${intended}`;
     }
 };
 

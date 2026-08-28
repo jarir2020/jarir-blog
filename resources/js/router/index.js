@@ -39,6 +39,11 @@ const routes = [
 
     // Phase 4 — admin SPA. The /admin paths mount a different layout
     // (see App.vue) that does not include the public header / footer.
+    //
+    // The login / forbidden states are NOT separate routes here; the
+    // AdminLayout hard-navigates to /login?intended=… when the user is
+    // not signed in. Routing those inside the SPA led to a dead-end
+    // "Go to login" button (see commit history).
     {
         path: '/admin',
         component: () => import('../views/admin/AdminLayout.vue'),
@@ -48,8 +53,6 @@ const routes = [
             { path: 'posts/new', name: 'AdminPostNew', component: () => import('../views/admin/AdminPostEdit.vue') },
             { path: 'posts/:id', name: 'AdminPostEdit', component: () => import('../views/admin/AdminPostEdit.vue') },
             { path: 'comments', name: 'AdminComments', component: () => import('../views/admin/AdminComments.vue') },
-            { path: 'login', name: 'AdminLogin', component: () => import('../views/admin/AdminLogin.vue') },
-            { path: 'forbidden', name: 'AdminForbidden', component: () => import('../views/admin/AdminForbidden.vue') },
         ],
     },
 ];

@@ -60,6 +60,12 @@ Route::prefix('api')->group(function () {
     });
 });
 
+// Breeze auth routes (/login, /register, /forgot-password, /reset-password,
+// /verify-email, /confirm-password, /logout). MUST be loaded before the
+// SPA catch-all below, otherwise the catch-all will swallow them and serve
+// the empty Vue shell instead of the Blade login form.
+require __DIR__ . '/auth.php';
+
 // Phase 3 — RSS / Atom feed at the top level, not under /api.
 Route::get('/feed.xml', [\App\Http\Controllers\FeedController::class, 'index']);
 
@@ -85,5 +91,3 @@ Route::get('/admin/{any?}', function () {
 Route::get('/{any?}', function () {
     return view('welcome');
 })->where('any', '.*');
-
-require __DIR__.'/auth.php';
