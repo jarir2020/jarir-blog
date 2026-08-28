@@ -1,124 +1,178 @@
 <template>
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <article class="bg-white rounded-lg shadow-md p-8">
-            <!-- Post Header -->
-            <header class="mb-8">
-                <span class="text-sm text-blue-600 font-semibold">{{ post.category }}</span>
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-4">{{ post.title }}</h1>
-                <div class="flex items-center gap-4 text-sm text-gray-500">
-                    <span>By {{ post.author }}</span>
-                    <span>{{ post.date }}</span>
-                    <span>{{ post.readTime }} min read</span>
-                </div>
-            </header>
-
-            <!-- Featured Image -->
-            <img :src="post.image" :alt="post.title" class="w-full h-96 object-cover rounded-lg mb-8">
-
-            <!-- Post Content -->
-            <div class="prose prose-lg max-w-none">
-                <p class="text-gray-700 leading-relaxed mb-6">{{ post.content }}</p>
-                <p class="text-gray-700 leading-relaxed mb-6">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">
+                    {{ error }}
                 </p>
-                <h2 class="text-2xl font-bold text-gray-900 mt-8 mb-4">Key Points</h2>
-                <ul class="list-disc list-inside space-y-2 text-gray-700 mb-6">
-                    <li>Important insight about the topic</li>
-                    <li>Another valuable perspective to consider</li>
-                    <li>Practical advice for implementation</li>
-                    <li>Future trends and predictions</li>
-                </ul>
-                <p class="text-gray-700 leading-relaxed mb-6">
-                    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </p>
-            </div>
 
-            <!-- Tags -->
-            <div class="mt-8 pt-6 border-t">
-                <div class="flex flex-wrap gap-2">
-                    <span v-for="tag in post.tags" :key="tag" 
-                          class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 cursor-pointer">
-                        {{ tag }}
-                    </span>
-                </div>
-            </div>
+                <p v-if="loading" class="mb-6 text-sm text-gray-500">Loading post…</p>
 
-            <!-- Share -->
-            <div class="mt-8 pt-6 border-t">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Share this article</h3>
-                <div class="flex gap-4">
-                    <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Facebook</button>
-                    <button class="px-4 py-2 bg-sky-500 text-white rounded hover:bg-sky-600">Twitter</button>
-                    <button class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">WhatsApp</button>
-                    <button class="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800">LinkedIn</button>
-                </div>
-            </div>
-        </article>
+                <article v-if="post" class="bg-white rounded-lg shadow-md p-8">
+                    <header class="mb-8">
+                        <span v-if="primaryCategory" class="text-sm text-blue-600 font-semibold">
+                            {{ primaryCategory.name }}
+                        </span>
+                        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-4">
+                            {{ post.title }}
+                        </h1>
+                        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                            <span v-if="post.author">
+                                By
+                                <router-link
+                                    :to="{ name: 'Author', params: { username: post.author.handle ?? authorHandle(post.author.name) } }"
+                                    class="text-blue-600 hover:underline"
+                                >
+                                    {{ post.author.name }}
+                                </router-link>
+                            </span>
+                            <span>{{ publishedDate }}</span>
+                            <span>{{ readingTime }} min read</span>
+                            <span>{{ post.views }} views</span>
+                        </div>
+                    </header>
 
-        <!-- Related Posts -->
-        <div class="mt-12">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Related Posts</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div v-for="relatedPost in relatedPosts" :key="relatedPost.id"
-                     class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                     @click="goToPost(relatedPost)">
-                    <img :src="relatedPost.image" :alt="relatedPost.title" class="w-full h-40 object-cover">
-                    <div class="p-4">
-                        <h3 class="text-lg font-bold text-gray-900">{{ relatedPost.title }}</h3>
-                        <p class="text-gray-600 text-sm mt-2">{{ relatedPost.excerpt }}</p>
+                    <img
+                        v-if="post.featured_image"
+                        :src="post.featured_image"
+                        :alt="post.title"
+                        class="w-full h-96 object-cover rounded-lg mb-8"
+                        @error="(e) => (e.target.style.display = 'none')"
+                    />
+
+                    <div v-if="post.excerpt" class="text-lg text-gray-600 italic mb-6">
+                        {{ post.excerpt }}
                     </div>
-                </div>
+
+                    <div class="prose prose-lg max-w-none">
+                        <p
+                            v-for="(paragraph, idx) in paragraphs"
+                            :key="idx"
+                            class="text-gray-700 leading-relaxed mb-6 whitespace-pre-line"
+                        >
+                            {{ paragraph }}
+                        </p>
+                    </div>
+
+                    <div v-if="post.tags && post.tags.length > 0" class="mt-8 pt-6 border-t">
+                        <div class="flex flex-wrap gap-2">
+                            <span
+                                v-for="tag in post.tags"
+                                :key="tag.id"
+                                class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full"
+                            >
+                                #{{ tag.name }}
+                            </span>
+                        </div>
+                    </div>
+                </article>
+
+                <CommentList v-if="post" :post-slug="post.slug" />
+
+                <section v-if="related.length > 0" class="mt-12">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Related Posts</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <PostCard
+                            v-for="relatedPost in related"
+                            :key="relatedPost.id"
+                            :post="relatedPost"
+                            @open="goToPost"
+                        />
+                    </div>
+                </section>
+            </div>
+
+            <div class="lg:col-span-1">
+                <Sidebar />
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import CommentList from '../components/CommentList.vue';
+import PostCard from '../components/PostCard.vue';
+import Sidebar from '../components/Sidebar.vue';
+import useApi from '../composables/useApi';
+import { computeReadingTime, formatDateLong } from '../composables/format';
 
 const route = useRoute();
 const router = useRouter();
+const api = useApi();
 
-const post = ref({
-    id: 1,
-    title: 'The Future of Technology in 2024',
-    category: 'Technology',
-    author: 'John Doe',
-    date: 'December 15, 2024',
-    readTime: '5',
-    image: 'https://picsum.photos/seed/tech1/800/400',
-    content: 'Explore the emerging technologies that will shape our future. From artificial intelligence to quantum computing, discover what lies ahead in the tech world.',
-    tags: ['Technology', 'AI', 'Future', 'Innovation']
-});
+const loading = ref(true);
+const error = ref(null);
+const post = ref(null);
+const related = ref([]);
 
-const relatedPosts = ref([
-    {
-        id: 2,
-        title: 'Understanding Machine Learning',
-        excerpt: 'A comprehensive guide to ML basics.',
-        image: 'https://picsum.photos/seed/ml1/400/200'
-    },
-    {
-        id: 3,
-        title: 'Cloud Computing Trends',
-        excerpt: 'What is shaping the cloud industry.',
-        image: 'https://picsum.photos/seed/cloud1/400/200'
+const loadPost = async (slug) => {
+    loading.value = true;
+    error.value = null;
+    post.value = null;
+    related.value = [];
+    try {
+        const data = await api.getPost(slug);
+        post.value = data.post ?? null;
+        related.value = data.related ?? [];
+    } catch (e) {
+        if (e?.response?.status === 404) {
+            error.value = 'Post not found.';
+        } else {
+            error.value = e?.response?.data?.message ?? e?.message ?? 'Failed to load post.';
+        }
+    } finally {
+        loading.value = false;
     }
-]);
-
-const goToPost = (postItem) => {
-    router.push({ name: 'BlogPost', params: { slug: `post-${postItem.id}` } });
 };
 
+const primaryCategory = computed(() => {
+    if (post.value && Array.isArray(post.value.categories) && post.value.categories.length > 0) {
+        return post.value.categories[0];
+    }
+    return null;
+});
+
+const publishedDate = computed(() => formatDateLong(post.value?.published_at));
+const readingTime = computed(() => {
+    if (post.value?.reading_time) return post.value.reading_time;
+    return computeReadingTime(post.value?.content);
+});
+
+const paragraphs = computed(() => {
+    if (!post.value?.content) return [];
+    return String(post.value.content)
+        .split(/\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+});
+
+const authorHandle = (name) => {
+    if (!name) return '';
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+};
+
+const goToPost = (relatedPost) => {
+    if (!relatedPost?.slug) return;
+    router.push({ name: 'BlogPost', params: { slug: relatedPost.slug } });
+};
+
+watch(
+    () => route.params.slug,
+    (slug) => {
+        if (slug) loadPost(slug);
+    },
+    { immediate: false }
+);
+
 onMounted(() => {
-    // In a real app, fetch post data based on route.params.slug
-    console.log('Loading post:', route.params.slug);
+    if (route.params.slug) loadPost(route.params.slug);
 });
 </script>
 
 <style scoped>
-.prose h2 {
+.prose :deep(h2) {
     margin-top: 2rem;
     margin-bottom: 1rem;
 }

@@ -1,0 +1,11 @@
+parameters:
+    level: 5
+    paths:
+        - app/
+    excludePaths:
+        - app/Http/Controllers/Auth/*
+        - app/Http/Controllers/ProfileController.php
+        - app/View/Components/*
+    bootstrapFiles:
+        - vendor/autoload.php
+    treatPhpDocTypesAsCertain: false

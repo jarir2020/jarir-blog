@@ -1,32 +1,89 @@
 <?php
 
+use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BlogController;
-use App\Http\Controllers\Api\PostController;
 
 // Main SPA route - serves the Vue.js application
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/{any?}', function () {
-    return view('welcome');
-})->where('any', '.*');
-
-// API Routes for blog posts
+// API Routes for blog posts - registered BEFORE the SPA catch-all so that
+// /api/* is not shadowed by the {any?} route below.
+//
+// Order matters: more specific routes (`/posts/{slug}/comments`) MUST be
+// declared before the catch-style `/posts/{slug}` route, otherwise
+// `/api/posts/foo/comments` will match `posts/{slug}` with slug=foo/comments.
 Route::prefix('api')->group(function () {
     Route::get('/posts', [PostController::class, 'index']);
+    Route::get('/posts/{slug}/comments', [\App\Http\Controllers\Api\CommentController::class, 'index']);
+    Route::post('/posts/{slug}/comments', [\App\Http\Controllers\Api\CommentController::class, 'store']);
+    Route::get('/posts/{slug}/related', [PostController::class, 'related']);
     Route::get('/posts/{slug}', [PostController::class, 'show']);
+
     Route::get('/categories', [PostController::class, 'categories']);
     Route::get('/categories/{slug}/posts', [PostController::class, 'byCategory']);
+    Route::get('/search', [PostController::class, 'search']);
+    Route::get('/sidebar', [\App\Http\Controllers\Api\SidebarController::class, 'index']);
+
+    Route::get('/authors/{username}', [\App\Http\Controllers\Api\AuthorController::class, 'show']);
+    Route::get('/authors/{username}/posts', [\App\Http\Controllers\Api\AuthorController::class, 'posts']);
+
+    Route::post('/subscribe', [\App\Http\Controllers\Api\SubscriptionController::class, 'store']);
+
+    // Phase 4 — admin SPA bootstrap. `me` is accessible to any authenticated
+    // user (it tells the SPA whether they're an admin). All other /api/admin/*
+    // routes are gated by the admin middleware below.
+    Route::middleware('auth')->group(function () {
+        Route::get('/admin/me', [\App\Http\Controllers\Api\Admin\MeController::class, 'show']);
+    });
+
+    // Phase 2 — admin image upload.
+    // Phase 4 — tightened to require the admin role.
+    Route::middleware(['auth', 'admin'])->group(function () {
+        Route::post('/admin/images', [\App\Http\Controllers\Api\Admin\ImageController::class, 'store']);
+
+        Route::get('/admin/posts', [\App\Http\Controllers\Api\Admin\PostController::class, 'index']);
+        Route::post('/admin/posts', [\App\Http\Controllers\Api\Admin\PostController::class, 'store']);
+        Route::get('/admin/posts/{id}', [\App\Http\Controllers\Api\Admin\PostController::class, 'show']);
+        Route::put('/admin/posts/{id}', [\App\Http\Controllers\Api\Admin\PostController::class, 'update']);
+        Route::delete('/admin/posts/{id}', [\App\Http\Controllers\Api\Admin\PostController::class, 'destroy']);
+
+        Route::get('/admin/comments', [\App\Http\Controllers\Api\Admin\CommentController::class, 'index']);
+        Route::post('/admin/comments/{id}/approve', [\App\Http\Controllers\Api\Admin\CommentController::class, 'approve']);
+        Route::post('/admin/comments/{id}/reject', [\App\Http\Controllers\Api\Admin\CommentController::class, 'reject']);
+        Route::delete('/admin/comments/{id}', [\App\Http\Controllers\Api\Admin\CommentController::class, 'destroy']);
+
+        Route::get('/admin/subscribers', [\App\Http\Controllers\Api\Admin\SubscriberController::class, 'index']);
+        Route::get('/admin/tags', [\App\Http\Controllers\Api\Admin\TagController::class, 'index']);
+    });
 });
 
+// Phase 3 — RSS / Atom feed at the top level, not under /api.
+Route::get('/feed.xml', [\App\Http\Controllers\FeedController::class, 'index']);
+
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', function () {
+        // Placeholder dashboard — replaced with a real blog admin in Phase 4.
+        return view('welcome');
+    })->name('dashboard');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+// Phase 4 — admin SPA. The Vue admin app lives under /admin and is served
+// by the same welcome blade. The SPA fetches /api/admin/me on mount to
+// decide whether the current user is allowed in.
+Route::get('/admin/{any?}', function () {
+    return view('welcome');
+})->where('any', '.*');
 
+// SPA catch-all - must come last so it does not shadow the API or auth routes.
+Route::get('/{any?}', function () {
+    return view('welcome');
+})->where('any', '.*');
+
+require __DIR__.'/auth.php';

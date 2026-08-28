@@ -1,5 +1,9 @@
 <template>
     <div class="min-h-screen bg-gray-50">
+        <!-- Phase 4 — admin paths render their own layout -->
+        <router-view v-if="isAdmin" />
+
+        <template v-else>
         <!-- Header -->
         <header class="bg-white shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -9,12 +13,26 @@
                             Jarir Blog
                         </router-link>
                     </div>
-                    <nav class="hidden md:flex space-x-8">
+                    <nav class="hidden md:flex items-center space-x-6">
                         <router-link to="/" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Home</router-link>
-                        <router-link to="/category/technology" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Technology</router-link>
-                        <router-link to="/category/lifestyle" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Lifestyle</router-link>
+                        <router-link
+                            v-for="category in categories"
+                            :key="category.id"
+                            :to="`/category/${category.slug}`"
+                            class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                        >
+                            {{ category.name }}
+                        </router-link>
                         <router-link to="/about" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">About</router-link>
                         <router-link to="/contact" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Contact</router-link>
+                        <form class="ml-2" @submit.prevent="submitSearch">
+                            <input
+                                v-model="searchQuery"
+                                type="search"
+                                placeholder="Search…"
+                                class="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent w-40"
+                            />
+                        </form>
                     </nav>
                     <div class="md:hidden">
                         <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-700">
@@ -29,8 +47,14 @@
             <div v-if="mobileMenuOpen" class="md:hidden bg-white border-t">
                 <div class="px-2 pt-2 pb-3 space-y-1">
                     <router-link to="/" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Home</router-link>
-                    <router-link to="/category/technology" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Technology</router-link>
-                    <router-link to="/category/lifestyle" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Lifestyle</router-link>
+                    <router-link
+                        v-for="category in categories"
+                        :key="category.id"
+                        :to="`/category/${category.slug}`"
+                        class="block px-3 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                        {{ category.name }}
+                    </router-link>
                     <router-link to="/about" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">About</router-link>
                     <router-link to="/contact" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Contact</router-link>
                 </div>
@@ -71,17 +95,48 @@
                     </div>
                 </div>
                 <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
-                    <p>&copy; 2024 Jarir Blog. All rights reserved.</p>
+                    <p>
+                        &copy; 2024 Jarir Blog. All rights reserved.
+                        &middot;
+                        <a href="/feed.xml" class="hover:text-white">RSS</a>
+                    </p>
                 </div>
             </div>
         </footer>
+        </template>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import useApi from './composables/useApi';
 
+const route = useRoute();
+const router = useRouter();
 const mobileMenuOpen = ref(false);
+const categories = ref([]);
+const searchQuery = ref('');
+
+const isAdmin = computed(() => route.path.startsWith('/admin'));
+
+const api = useApi();
+
+const submitSearch = () => {
+    const q = searchQuery.value.trim();
+    if (!q) return;
+    router.push({ name: 'Search', query: { q } });
+};
+
+onMounted(async () => {
+    try {
+        const data = await api.listCategories();
+        categories.value = Array.isArray(data) ? data : data?.data ?? [];
+    } catch (e) {
+        // Non-fatal: header falls back to no category links.
+        categories.value = [];
+    }
+});
 </script>
 
 <style scoped>

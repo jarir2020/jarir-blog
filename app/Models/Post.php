@@ -18,12 +18,16 @@ class Post extends Model
         'content',
         'featured_image',
         'status',
+        'is_featured',
+        'views',
         'published_at',
         'author_id',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
+        'is_featured' => 'boolean',
+        'views' => 'integer',
     ];
 
     public function author(): BelongsTo
@@ -44,11 +48,16 @@ class Post extends Model
     public function scopePublished($query)
     {
         return $query->where('status', 'published')
-                    ->where('published_at', '<=', now());
+            ->where('published_at', '<=', now());
     }
 
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
+    }
+
+    public function scopePopular($query, int $limit = 5)
+    {
+        return $query->orderByDesc('views')->limit($limit);
     }
 }

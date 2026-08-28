@@ -3,117 +3,116 @@
         <!-- Hero Section -->
         <div class="bg-blue-600 rounded-lg shadow-lg p-8 mb-12 text-white">
             <h1 class="text-4xl font-bold mb-4">Welcome to Jarir Blog</h1>
-            <p class="text-lg opacity-90">Discover insightful articles, news, and stories from around the world.</p>
+            <p class="text-lg opacity-90">
+                Discover insightful articles, news, and stories from around the world.
+            </p>
         </div>
+
+        <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">
+            {{ error }}
+        </p>
+
+        <p v-if="loading" class="mb-6 text-sm text-gray-500">Loading posts…</p>
 
         <!-- Featured Posts -->
-        <div class="mb-12">
+        <section v-if="featuredPosts.length > 0" class="mb-12">
             <h2 class="text-2xl font-bold text-gray-900 mb-6">Featured Posts</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div v-for="post in featuredPosts" :key="post.id" 
-                     class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                     @click="goToPost(post)">
-                    <img :src="post.image" :alt="post.title" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <span class="text-sm text-blue-600 font-semibold">{{ post.category }}</span>
-                        <h3 class="text-xl font-bold text-gray-900 mt-2 mb-2">{{ post.title }}</h3>
-                        <p class="text-gray-600 text-sm mb-4">{{ post.excerpt }}</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-gray-500">{{ post.date }}</span>
-                            <span class="text-blue-600 text-sm font-medium">Read More →</span>
-                        </div>
-                    </div>
-                </div>
+                <PostCard
+                    v-for="post in featuredPosts"
+                    :key="post.id"
+                    :post="post"
+                    @open="goToPost"
+                />
             </div>
-        </div>
+        </section>
 
         <!-- Latest Posts -->
-        <div>
+        <section>
             <h2 class="text-2xl font-bold text-gray-900 mb-6">Latest Posts</h2>
-            <div class="space-y-6">
-                <div v-for="post in latestPosts" :key="post.id"
-                     class="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-shadow cursor-pointer"
-                     @click="goToPost(post)">
-                    <img :src="post.image" :alt="post.title" class="w-full md:w-48 h-32 object-cover rounded">
-                    <div class="flex-1">
-                        <span class="text-sm text-blue-600 font-semibold">{{ post.category }}</span>
-                        <h3 class="text-lg font-bold text-gray-900 mt-1 mb-2">{{ post.title }}</h3>
-                        <p class="text-gray-600 text-sm">{{ post.excerpt }}</p>
-                        <div class="mt-3 flex items-center gap-4">
-                            <span class="text-xs text-gray-500">{{ post.author }}</span>
-                            <span class="text-xs text-gray-500">{{ post.date }}</span>
-                        </div>
-                    </div>
-                </div>
+            <div v-if="!loading && latestPosts.length === 0" class="text-sm text-gray-500">
+                No published posts yet. Add some via the database to see them here.
             </div>
-        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <PostCard
+                    v-for="post in latestPosts"
+                    :key="post.id"
+                    :post="post"
+                    @open="goToPost"
+                />
+            </div>
+            <nav v-if="lastPage > 1" class="mt-8 flex justify-center gap-2">
+                <button
+                    class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                    :disabled="currentPage <= 1"
+                    @click="changePage(currentPage - 1)"
+                >
+                    Previous
+                </button>
+                <span class="px-4 py-2 bg-blue-600 text-white rounded">
+                    {{ currentPage }} / {{ lastPage }}
+                </span>
+                <button
+                    class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                    :disabled="currentPage >= lastPage"
+                    @click="changePage(currentPage + 1)"
+                >
+                    Next
+                </button>
+            </nav>
+        </section>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import PostCard from '../components/PostCard.vue';
+import useApi from '../composables/useApi';
 
 const router = useRouter();
+const api = useApi();
 
-const featuredPosts = ref([
-    {
-        id: 1,
-        title: 'The Future of Technology in 2024',
-        excerpt: 'Explore the emerging technologies that will shape our future.',
-        category: 'Technology',
-        date: 'Dec 15, 2024',
-        image: 'https://picsum.photos/seed/tech1/400/200'
-    },
-    {
-        id: 2,
-        title: 'Healthy Living Tips for Busy Professionals',
-        excerpt: 'Simple ways to maintain a healthy lifestyle despite a busy schedule.',
-        category: 'Lifestyle',
-        date: 'Dec 14, 2024',
-        image: 'https://picsum.photos/seed/health1/400/200'
-    },
-    {
-        id: 3,
-        title: 'Travel Destinations You Must Visit',
-        excerpt: 'Discover breathtaking places around the world.',
-        category: 'Travel',
-        date: 'Dec 13, 2024',
-        image: 'https://picsum.photos/seed/travel1/400/200'
-    }
-]);
+const loading = ref(true);
+const error = ref(null);
+const allPosts = ref([]);
+const currentPage = ref(1);
+const lastPage = ref(1);
 
-const latestPosts = ref([
-    {
-        id: 4,
-        title: 'Understanding Artificial Intelligence',
-        excerpt: 'A beginner-friendly guide to AI and machine learning concepts.',
-        category: 'Technology',
-        author: 'John Doe',
-        date: 'Dec 12, 2024',
-        image: 'https://picsum.photos/seed/ai1/400/200'
-    },
-    {
-        id: 5,
-        title: 'Best Practices for Remote Work',
-        excerpt: 'Tips and tricks for staying productive while working from home.',
-        category: 'Business',
-        author: 'Jane Smith',
-        date: 'Dec 11, 2024',
-        image: 'https://picsum.photos/seed/work1/400/200'
-    },
-    {
-        id: 6,
-        title: 'Cooking Made Easy: Quick Recipes',
-        excerpt: 'Delicious meals you can prepare in under 30 minutes.',
-        category: 'Food',
-        author: 'Mike Johnson',
-        date: 'Dec 10, 2024',
-        image: 'https://picsum.photos/seed/food1/400/200'
+const loadPosts = async (page = 1) => {
+    loading.value = true;
+    error.value = null;
+    try {
+        const data = await api.listPosts(page, 12);
+        allPosts.value = data.data ?? [];
+        currentPage.value = data.current_page ?? 1;
+        lastPage.value = data.last_page ?? 1;
+    } catch (e) {
+        error.value = e?.response?.data?.message ?? e?.message ?? 'Failed to load posts.';
+        allPosts.value = [];
+    } finally {
+        loading.value = false;
     }
-]);
+};
+
+const featuredPosts = computed(() =>
+    allPosts.value.filter((post) => post.is_featured).slice(0, 3)
+);
+
+// "Latest" excludes the featured subset, so the two sections don't repeat.
+const latestPosts = computed(() =>
+    allPosts.value.filter((post) => !post.is_featured)
+);
+
+const changePage = (page) => {
+    if (page < 1 || page > lastPage.value) return;
+    loadPosts(page);
+};
 
 const goToPost = (post) => {
-    router.push({ name: 'BlogPost', params: { slug: `post-${post.id}` } });
+    if (!post?.slug) return;
+    router.push({ name: 'BlogPost', params: { slug: post.slug } });
 };
+
+onMounted(() => loadPosts(1));
 </script>

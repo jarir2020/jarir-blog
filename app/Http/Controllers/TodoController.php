@@ -9,6 +9,7 @@ class TodoController extends Controller
     public function index(Request $request)
     {
         $todos = $request->session()->get('todos', []);
+
         return view('todos.index', compact('todos'));
     }
 
@@ -17,13 +18,13 @@ class TodoController extends Controller
         return view('todos.create');
     }
 
-
     public function store(Request $request)
     {
         $request->validate(['task' => 'required']);
         $todos = $request->session()->get('todos', []);
         $todos[] = ['task' => $request->task, 'id' => uniqid()];
         $request->session()->put('todos', $todos);
+
         return redirect()->route('todos.index');
     }
 
@@ -31,9 +32,10 @@ class TodoController extends Controller
     {
         $todos = $request->session()->get('todos', []);
         $todo = collect($todos)->firstWhere('id', $id);
-        if (!$todo) {
+        if (! $todo) {
             return redirect()->route('todos.index');
         }
+
         return view('todos.edit', compact('todo'));
     }
 
@@ -48,14 +50,16 @@ class TodoController extends Controller
             }
         }
         $request->session()->put('todos', $todos);
+
         return redirect()->route('todos.index');
     }
 
     public function destroy(Request $request, $id)
     {
         $todos = $request->session()->get('todos', []);
-        $todos = array_filter($todos, fn($todo) => $todo['id'] !== $id);
+        $todos = array_filter($todos, fn ($todo) => $todo['id'] !== $id);
         $request->session()->put('todos', $todos);
+
         return redirect()->route('todos.index');
     }
 }
