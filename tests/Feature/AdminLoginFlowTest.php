@@ -210,9 +210,13 @@ class AdminLoginFlowTest extends TestCase
     public function test_public_login_uses_light_header(): void
     {
         $response = $this->get('/login')->assertOk();
-        // The public site-layout uses a white header with a bottom border.
+        // The public site-layout uses a white masthead with a bottom border.
+        // The dark topbar is shared with the public chrome (Phase 6
+        // redesign), so we no longer assert against bg-gray-900 here —
+        // the meaningful guard is that the admin chrome (which uses
+        // bg-gray-900 for the whole sidebar) doesn't leak into the
+        // public login page.
         $this->assertStringContainsString('bg-white', $response->getContent());
-        $this->assertStringNotContainsString('bg-gray-900', $response->getContent());
         $this->assertStringNotContainsString('Admin sign-in', $response->getContent());
     }
 

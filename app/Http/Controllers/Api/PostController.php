@@ -29,6 +29,26 @@ class PostController extends Controller
     }
 
     /**
+     * Phase 6 — pick one published post at random. The topbar's
+     * "Random" button links here. Returns just the slug so the
+     * client can navigate to /blog/{slug}; if the database is empty
+     * we return a 404 so the caller can fall back to a sensible UI.
+     */
+    public function random(): JsonResponse
+    {
+        $post = Post::query()
+            ->published()
+            ->inRandomOrder()
+            ->first(['slug']);
+
+        if (! $post) {
+            return response()->json(['message' => 'No published posts yet.'], 404);
+        }
+
+        return response()->json(['slug' => $post->slug]);
+    }
+
+    /**
      * Display the specified post.
      */
     public function show(string $slug): JsonResponse

@@ -3,34 +3,61 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
 use App\Models\Tag;
+use App\Support\SidebarResolver;
 use Illuminate\Http\JsonResponse;
 
 /**
- * Phase 3 — Sidebar data feed.
+ * Phase 6 — public sidebar data feed.
  *
- * One endpoint, one round trip. Returns the three pieces the sidebar
- * component needs:
- *   - recent posts (latest 5)
- *   - popular posts (top 5 by view count)
- *   - tag cloud (tag id, name, slug, post count)
+ * One endpoint, one round trip. The response shape:
+ *
+ *   {
+ *     "recent":   [...5 posts],   // legacy, kept for the old Sidebar.vue shape
+ *     "popular":  [...5 posts],   // legacy
+ *     "tags":     [...N tags],    // legacy
+ *     "widgets":  [...N resolved widgets in `order`]  // new — drives the redesign
+ *   }
+ *
+ * Existing views that read `recent/popular/tags` keep working. The
+ * Sidebar.vue component reads `widgets` and renders the new chrome.
  */
 class SidebarController extends Controller
 {
     public function index(): JsonResponse
     {
-        $recent = Post::with('author')
+        $resolver = app(SidebarResolver::class);
+
+        return response()->json([
+            // Legacy keys — small, cheap, no resolver involved.
+            'recent' => $this->recent(),
+            'popular' => $this->popular(),
+            'tags' => $this->tags(),
+
+            // New: admin-configured widget list.
+            'widgets' => $resolver->resolve('right'),
+        ]);
+    }
+
+    private function recent()
+    {
+        return \App\Models\Post::with('author')
             ->published()
             ->orderBy('published_at', 'desc')
             ->limit(5)
             ->get(['id', 'title', 'slug', 'author_id', 'published_at', 'featured_image']);
+    }
 
-        $popular = Post::published()
+    private function popular()
+    {
+        return \App\Models\Post::published()
             ->popular(5)
             ->get(['id', 'title', 'slug', 'views']);
+    }
 
-        $tags = Tag::whereHas('posts', function ($q) {
+    private function tags()
+    {
+        return Tag::whereHas('posts', function ($q) {
             $q->whereHas('status', fn ($sq) => $sq->where('slug', 'published'));
         })
             ->withCount(['posts' => function ($q) {
@@ -39,11 +66,5 @@ class SidebarController extends Controller
             ->orderByDesc('posts_count')
             ->limit(20)
             ->get(['id', 'name', 'slug']);
-
-        return response()->json([
-            'recent' => $recent,
-            'popular' => $popular,
-            'tags' => $tags,
-        ]);
     }
 }

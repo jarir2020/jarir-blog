@@ -1,88 +1,198 @@
 <template>
-    <aside class="space-y-8">
-        <!-- Recent posts -->
-        <section class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Recent Posts</h3>
-            <ul v-if="data.recent.length > 0" class="space-y-3">
-                <li v-for="post in data.recent" :key="post.id" class="text-sm">
+    <aside class="space-y-6">
+        <!--
+          Each enabled widget in the order configured by the admin.
+          We dispatch on `widget.type` to render the right template.
+          Unknown / unimplemented types fall through to a placeholder.
+        -->
+        <template v-for="widget in data.widgets" :key="widget.id || widget.type">
+            <!-- Tabbed Popular / Recent / Comments -->
+            <section
+                v-if="widget.type === 'popular_recent_comments'"
+                class="bg-white rounded-lg shadow-sm p-5"
+            >
+                <h3 class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
+                <div class="flex border-b border-gray-200 mb-3 text-sm">
+                    <button
+                        v-for="tab in tabs"
+                        :key="tab.key"
+                        type="button"
+                        @click="activeTab = tab.key"
+                        :class="[
+                            'px-3 py-2 -mb-px border-b-2 font-medium',
+                            activeTab === tab.key
+                                ? 'border-blue-600 text-blue-600'
+                                : 'border-transparent text-gray-600 hover:text-gray-900',
+                        ]"
+                    >{{ tab.label }}</button>
+                </div>
+                <ul v-if="(widget[activeTab] || []).length > 0" class="space-y-3">
+                    <li v-for="item in widget[activeTab]" :key="item.id" class="flex gap-3 text-sm">
+                        <img
+                            v-if="item.featured_image"
+                            :src="item.featured_image"
+                            :alt="item.title"
+                            class="w-16 h-12 object-cover rounded shrink-0"
+                            @error="(e) => e.target.style.display = 'none'"
+                        />
+                        <div class="min-w-0 flex-1">
+                            <router-link
+                                v-if="item.post"
+                                :to="{ name: 'BlogPost', params: { slug: item.post.slug } }"
+                                class="text-gray-800 hover:text-blue-600 line-clamp-2"
+                            >{{ item.post.title }}</router-link>
+                            <router-link
+                                v-else
+                                :to="{ name: 'BlogPost', params: { slug: item.slug } }"
+                                class="text-gray-800 hover:text-blue-600 line-clamp-2"
+                            >{{ item.title }}</router-link>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                <template v-if="activeTab === 'popular'">{{ item.views }} views</template>
+                                <template v-else-if="activeTab === 'comments'">{{ item.name }}</template>
+                                <template v-else>{{ formatDate(item.published_at) }}</template>
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+                <p v-else class="text-sm text-gray-500">Nothing here yet.</p>
+            </section>
+
+            <!-- Category widget: heading + 5 recent posts in that category -->
+            <section
+                v-else-if="widget.type === 'category'"
+                class="bg-white rounded-lg shadow-sm p-5"
+            >
+                <h3 class="text-base font-bold text-gray-900 mb-3">
                     <router-link
-                        :to="{ name: 'BlogPost', params: { slug: post.slug } }"
-                        class="text-gray-800 hover:text-blue-600 line-clamp-2"
-                    >
-                        {{ post.title }}
-                    </router-link>
-                    <p class="text-xs text-gray-500 mt-1">{{ formatDate(post.published_at) }}</p>
-                </li>
-            </ul>
-            <p v-else class="text-sm text-gray-500">No posts yet.</p>
-        </section>
+                        v-if="widget.category"
+                        :to="{ name: 'Category', params: { slug: widget.category.slug } }"
+                        class="hover:text-blue-600"
+                    >{{ widget.name }}</router-link>
+                    <template v-else>{{ widget.name }}</template>
+                </h3>
+                <ul v-if="widget.posts.length > 0" class="space-y-3">
+                    <li v-for="post in widget.posts" :key="post.id" class="flex gap-3 text-sm">
+                        <img
+                            v-if="post.featured_image"
+                            :src="post.featured_image"
+                            :alt="post.title"
+                            class="w-16 h-12 object-cover rounded shrink-0"
+                            @error="(e) => e.target.style.display = 'none'"
+                        />
+                        <router-link
+                            :to="{ name: 'BlogPost', params: { slug: post.slug } }"
+                            class="text-gray-800 hover:text-blue-600 line-clamp-2"
+                        >{{ post.title }}</router-link>
+                    </li>
+                </ul>
+                <p v-else class="text-sm text-gray-500">No posts in this category yet.</p>
+            </section>
 
-        <!-- Popular posts -->
-        <section class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Popular Posts</h3>
-            <ul v-if="data.popular.length > 0" class="space-y-3">
-                <li v-for="post in data.popular" :key="post.id" class="text-sm">
-                    <router-link
-                        :to="{ name: 'BlogPost', params: { slug: post.slug } }"
-                        class="text-gray-800 hover:text-blue-600 line-clamp-2"
-                    >
-                        {{ post.title }}
-                    </router-link>
-                    <p class="text-xs text-gray-500 mt-1">{{ post.views }} views</p>
-                </li>
-            </ul>
-            <p v-else class="text-sm text-gray-500">No popular posts yet.</p>
-        </section>
+            <!-- Video gallery (placeholder; YouTube channel id is in widget.settings) -->
+            <section
+                v-else-if="widget.type === 'video'"
+                class="bg-white rounded-lg shadow-sm p-5"
+            >
+                <h3 class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
+                <p class="text-sm text-gray-500">Video gallery coming soon.</p>
+            </section>
 
-        <!-- Tag cloud -->
-        <section class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Tags</h3>
-            <div v-if="data.tags.length > 0" class="flex flex-wrap gap-2">
-                <router-link
-                    v-for="tag in data.tags"
-                    :key="tag.id"
-                    :to="{ name: 'Search', query: { q: tag.name } }"
-                    class="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-blue-100 hover:text-blue-700"
+            <!-- Arbitrary HTML -->
+            <section
+                v-else-if="widget.type === 'html'"
+                class="bg-white rounded-lg shadow-sm p-5"
+            >
+                <h3 v-if="widget.name" class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
+                <div class="text-sm text-gray-700" v-html="widget.body"></div>
+            </section>
+
+            <!-- Social follow -->
+            <section
+                v-else-if="widget.type === 'social'"
+                class="bg-white rounded-lg shadow-sm p-5"
+            >
+                <h3 class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
+                <div class="flex flex-wrap gap-2">
+                    <a
+                        v-for="(link, idx) in widget.links"
+                        :key="idx"
+                        :href="link.url"
+                        target="_blank"
+                        rel="noopener"
+                        class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-blue-100 hover:text-blue-700"
+                    >{{ link.platform }}</a>
+                </div>
+            </section>
+
+            <!-- Archives dropdown -->
+            <section
+                v-else-if="widget.type === 'archives'"
+                class="bg-white rounded-lg shadow-sm p-5"
+            >
+                <h3 class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
+                <select
+                    v-if="widget.archives.length > 0"
+                    @change="onArchiveChange"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
                 >
-                    #{{ tag.name }}
-                    <span class="text-gray-400">({{ tag.posts_count }})</span>
-                </router-link>
-            </div>
-            <p v-else class="text-sm text-gray-500">No tags yet.</p>
-        </section>
+                    <option value="">Select month</option>
+                    <option v-for="a in widget.archives" :key="a.key" :value="a.key">
+                        {{ a.label }} ({{ a.count }})
+                    </option>
+                </select>
+                <p v-else class="text-sm text-gray-500">No archives yet.</p>
+            </section>
 
-        <!-- Newsletter -->
-        <section class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-2">Subscribe</h3>
-            <p class="text-sm text-gray-600 mb-3">Get new posts in your inbox.</p>
-            <form @submit.prevent="subscribe" class="space-y-2">
-                <input
-                    v-model="email"
-                    type="email"
-                    required
-                    placeholder="you@example.com"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                    type="submit"
-                    :disabled="submitting"
-                    class="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
-                    {{ submitting ? 'Subscribing…' : 'Subscribe' }}
-                </button>
-                <p v-if="message" :class="messageClass" class="text-xs">{{ message }}</p>
-            </form>
-        </section>
+            <!-- Newsletter -->
+            <section
+                v-else-if="widget.type === 'newsletter'"
+                class="bg-white rounded-lg shadow-sm p-5"
+            >
+                <h3 class="text-base font-bold text-gray-900 mb-2">{{ widget.name }}</h3>
+                <p class="text-sm text-gray-600 mb-3">Get new posts in your inbox.</p>
+                <form @submit.prevent="subscribe" class="space-y-2">
+                    <input
+                        v-model="email"
+                        type="email"
+                        required
+                        placeholder="you@example.com"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button
+                        type="submit"
+                        :disabled="submitting"
+                        class="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    >
+                        {{ submitting ? 'Subscribing…' : 'Subscribe' }}
+                    </button>
+                    <p v-if="message" :class="messageClass" class="text-xs">{{ message }}</p>
+                </form>
+            </section>
+        </template>
+
+        <p v-if="!loading && data.widgets.length === 0" class="text-sm text-gray-500">
+            No sidebar widgets configured.
+        </p>
     </aside>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { formatDate } from '../composables/format';
 import useApi from '../composables/useApi';
 
+const router = useRouter();
 const api = useApi();
-const data = ref({ recent: [], popular: [], tags: [] });
+
+const loading = ref(true);
+const data = ref({ widgets: [] });
+const activeTab = ref('popular');
+const tabs = [
+    { key: 'popular', label: 'Popular' },
+    { key: 'recent', label: 'Recent' },
+    { key: 'comments', label: 'Comments' },
+];
 
 const email = ref('');
 const submitting = ref(false);
@@ -92,13 +202,11 @@ const messageClass = ref('');
 const load = async () => {
     try {
         const payload = await api.getSidebar();
-        data.value = {
-            recent: payload.recent ?? [],
-            popular: payload.popular ?? [],
-            tags: payload.tags ?? [],
-        };
+        data.value = { widgets: payload.widgets ?? [] };
     } catch (e) {
-        // Silent failure — sidebar is non-critical.
+        // Silent: sidebar is non-critical.
+    } finally {
+        loading.value = false;
     }
 };
 
@@ -118,6 +226,13 @@ const subscribe = async () => {
     } finally {
         submitting.value = false;
     }
+};
+
+const onArchiveChange = (e) => {
+    const key = e.target.value;
+    if (!key) return;
+    // `key` is "YYYY-MM" — push it to the search route.
+    router.push({ name: 'Search', query: { archive: key } });
 };
 
 onMounted(load);

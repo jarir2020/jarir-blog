@@ -1,7 +1,6 @@
 <template>
-    <AppHeader />
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-6">Contact Us</h1>
             
             <p class="text-gray-700 mb-8">
@@ -109,7 +108,6 @@
 
 <script setup>
 import { ref } from 'vue';
-import AppHeader from '../components/AppHeader.vue';
 
 const isSubmitting = ref(false);
 const form = ref({

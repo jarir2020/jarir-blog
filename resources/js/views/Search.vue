@@ -1,75 +1,70 @@
 <template>
-    <AppHeader />
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Search</h1>
-            <p class="text-gray-600 mt-2">
-                <span v-if="query">Results for &ldquo;<strong>{{ query }}</strong>&rdquo;:</span>
-                <span v-else>Type a query to search published posts.</span>
-            </p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900">Search</h1>
+                    <p class="text-gray-600 mt-2">
+                        <span v-if="query">Results for &ldquo;<strong>{{ query }}</strong>&rdquo;:</span>
+                        <span v-else>Type a query to search published posts.</span>
+                    </p>
+                </div>
+
+                <form class="mb-6 flex gap-2" @submit.prevent="runSearch">
+                    <input
+                        v-model="inputValue"
+                        type="search"
+                        placeholder="Search posts…"
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button
+                        type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >Search</button>
+                </form>
+
+                <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ error }}</p>
+                <p v-if="loading" class="text-sm text-gray-500">Searching…</p>
+                <p v-if="!loading && results.length === 0 && query" class="text-sm text-gray-500">
+                    No posts matched &ldquo;{{ query }}&rdquo;.
+                </p>
+
+                <div v-if="!loading && results.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <PostCard v-for="post in results" :key="post.id" :post="post" />
+                </div>
+
+                <nav v-if="lastPage > 1" class="mt-8 flex justify-center gap-2">
+                    <button
+                        class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                        :disabled="currentPage <= 1"
+                        @click="changePage(currentPage - 1)"
+                    >Previous</button>
+                    <span class="px-4 py-2 bg-blue-600 text-white rounded">
+                        {{ currentPage }} / {{ lastPage }}
+                    </span>
+                    <button
+                        class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                        :disabled="currentPage >= lastPage"
+                        @click="changePage(currentPage + 1)"
+                    >Next</button>
+                </nav>
+            </div>
+
+            <div class="lg:col-span-1">
+                <Sidebar />
+            </div>
         </div>
 
-        <form class="mb-6 flex gap-2" @submit.prevent="runSearch">
-            <input
-                v-model="inputValue"
-                type="search"
-                placeholder="Search posts…"
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-                type="submit"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-                Search
-            </button>
-        </form>
-
-        <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">
-            {{ error }}
-        </p>
-
-        <p v-if="loading" class="mb-6 text-sm text-gray-500">Searching…</p>
-
-        <div v-if="!loading && results.length === 0 && query" class="text-sm text-gray-500">
-            No posts matched &ldquo;{{ query }}&rdquo;.
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <PostCard
-                v-for="post in results"
-                :key="post.id"
-                :post="post"
-                @open="goToPost"
-            />
-        </div>
-
-        <nav v-if="lastPage > 1" class="mt-12 flex justify-center gap-2">
-            <button
-                class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
-                :disabled="currentPage <= 1"
-                @click="changePage(currentPage - 1)"
-            >
-                Previous
-            </button>
-            <span class="px-4 py-2 bg-blue-600 text-white rounded">
-                {{ currentPage }} / {{ lastPage }}
-            </span>
-            <button
-                class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
-                :disabled="currentPage >= lastPage"
-                @click="changePage(currentPage + 1)"
-            >
-                Next
-            </button>
-        </nav>
+        <BackToTop />
     </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import AppHeader from '../components/AppHeader.vue';
+import BackToTop from '../components/BackToTop.vue';
 import PostCard from '../components/PostCard.vue';
+import Sidebar from '../components/Sidebar.vue';
 import useApi from '../composables/useApi';
 
 const route = useRoute();
@@ -113,14 +108,8 @@ const runSearch = async (page = 1) => {
 
 const changePage = (page) => {
     if (page < 1 || page > lastPage.value) return;
-    // Preserve the query in the URL so the page is bookmarkable.
     router.replace({ query: { ...route.query, q: inputValue.value, page } });
     runSearch(page);
-};
-
-const goToPost = (post) => {
-    if (!post?.slug) return;
-    router.push({ name: 'BlogPost', params: { slug: post.slug } });
 };
 
 watch(
@@ -130,7 +119,7 @@ watch(
         const page = parseInt(q.page ?? '1', 10) || 1;
         if (q.q) runSearch(page);
     },
-    { deep: true }
+    { deep: true },
 );
 
 onMounted(() => {

@@ -3,6 +3,18 @@
 @php
     $siteName = config('app.name', 'Jarir Blog');
     $siteUrl = rtrim(config('app.url'), '/');
+    // Categories for the horizontal nav. We pull them here (cheap
+    // query) so the chrome renders before the SPA mounts. The
+    // Vue components also fetch /api/categories, but the Blade-rendered
+    // version is the source of truth for the no-JS fallback.
+    //
+    // Guarded with Schema::hasTable so the layout still renders in
+    // test environments where migrations haven't run yet (e.g.
+    // Phase0RoutesTest asserts the welcome view without seeding
+    // any data).
+    $navCategories = \Illuminate\Support\Facades\Schema::hasTable('categories')
+        ? \App\Models\Category::orderBy('name')->get(['id', 'name', 'slug'])
+        : collect();
 @endphp
 
 <!DOCTYPE html>
@@ -11,7 +23,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="{{ $isAdmin ? '#111827' : '#2563eb' }}">
+    <meta name="theme-color" content="#ffffff">
 
     @if ($title)
         <title>{{ $title }} — {{ $siteName }}</title>
@@ -39,46 +51,154 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
-    {{-- Site header --}}
-    <header class="{{ $isAdmin ? 'bg-gray-900 text-white' : 'bg-white border-b border-gray-200' }}">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="/" class="text-2xl font-bold {{ $isAdmin ? 'text-white' : 'text-blue-600' }}">
-                    {{ $siteName }}
-                </a>
+    {{-- Top utility bar (slim, dark). Mirrors the reference site's
+         search / theme / social row. The "Random" link is a real
+         endpoint; the theme + sidebar toggles are placeholders for
+         future work. --}}
+    <div class="bg-gray-900 text-gray-300 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <a href="/feed.xml" class="hover:text-white">RSS</a>
+                <span class="text-gray-600">|</span>
+                <a href="#" class="hover:text-white" title="Switch theme (coming soon)">Theme</a>
+                <span class="text-gray-600">|</span>
+                <a href="/api/posts/random" id="random-post-link" class="hover:text-white" data-random>Random</a>
             </div>
-            <div class="flex items-center gap-4 text-sm">
+            <div class="flex items-center gap-3">
+                <a href="https://facebook.com" class="hover:text-white" aria-label="Facebook">Facebook</a>
+                <a href="https://twitter.com" class="hover:text-white" aria-label="Twitter / X">X</a>
+                <a href="https://youtube.com" class="hover:text-white" aria-label="YouTube">YouTube</a>
                 @auth
-                    <a href="{{ route('dashboard') }}" class="{{ $isAdmin ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-blue-600' }}">Dashboard</a>
-                    <span class="{{ $isAdmin ? 'text-gray-300' : 'text-gray-700' }}">{{ auth()->user()->name }}</span>
+                    <span class="text-gray-600">|</span>
+                    <a href="{{ route('dashboard') }}" class="hover:text-white">Dashboard</a>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="px-3 py-1.5 text-sm bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 {{ $isAdmin ? '' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
-                            Log out
-                        </button>
+                        <button type="submit" class="hover:text-white">Log out</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="{{ $isAdmin ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-blue-600' }}">Log in</a>
-                    <a href="{{ route('register') }}" class="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700">Register</a>
+                    <span class="text-gray-600">|</span>
+                    <a href="{{ route('login') }}" class="hover:text-white">Log in</a>
                 @endauth
             </div>
         </div>
+    </div>
+
+    {{-- Logo + search + category nav. This is the "masthead" of the
+         reference site. The Vue SPA replaces only the slot below; the
+         masthead is purely Blade so it renders instantly and stays
+         accessible. --}}
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
+            <a href="/" class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold">
+                    {{ strtoupper(substr($siteName, 0, 1)) }}
+                </div>
+                <span class="text-2xl font-bold text-gray-900">{{ $siteName }}</span>
+            </a>
+
+            <form action="/search" method="get" class="flex-1 max-w-md">
+                <div class="relative">
+                    <input
+                        type="search"
+                        name="q"
+                        value="{{ request('q') }}"
+                        placeholder="Search…"
+                        class="w-full px-4 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" aria-label="Search">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <nav class="bg-gray-100 border-t border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-1 overflow-x-auto py-1 text-sm">
+                    <a href="/" class="px-3 py-2 rounded-md text-gray-700 hover:bg-white hover:text-blue-600 font-medium {{ request()->is('/') ? 'text-blue-600' : '' }}">Home</a>
+                    @foreach ($navCategories as $category)
+                        <a
+                            href="/category/{{ $category->slug }}"
+                            class="px-3 py-2 rounded-md text-gray-700 hover:bg-white hover:text-blue-600 font-medium whitespace-nowrap {{ request()->is('category/'.$category->slug) ? 'text-blue-600' : '' }}"
+                        >{{ $category->name }}</a>
+                    @endforeach
+                </div>
+            </div>
+        </nav>
     </header>
 
-    {{-- Page content --}}
+    {{-- Page content. The Vue SPA mounts into this slot via
+         <div id="app">. The slot is empty by default; the
+         public Blade fallback (welcome.blade.php) renders its own
+         placeholder inside it. --}}
     <main class="flex-1 w-full">
         {{ $slot }}
     </main>
 
-    {{-- Site footer --}}
-    <footer class="bg-gray-800 text-white mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-gray-400 text-sm">
-            <p>
+    {{-- Dark footer. --}}
+    <footer class="bg-gray-900 text-gray-300 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6 text-sm">
+                <div>
+                    <h3 class="text-white font-bold mb-3">{{ $siteName }}</h3>
+                    <p class="text-gray-400">Insightful articles, news, and stories from around the world.</p>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-3">Explore</h3>
+                    <ul class="space-y-1">
+                        <li><a href="/" class="hover:text-white">Home</a></li>
+                        <li><a href="/about" class="hover:text-white">About</a></li>
+                        <li><a href="/contact" class="hover:text-white">Contact</a></li>
+                        <li><a href="/feed.xml" class="hover:text-white">RSS</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold mb-3">Follow</h3>
+                    <div class="flex gap-3">
+                        <a href="https://facebook.com" class="hover:text-white" aria-label="Facebook">Facebook</a>
+                        <a href="https://twitter.com" class="hover:text-white" aria-label="Twitter / X">X</a>
+                        <a href="https://youtube.com" class="hover:text-white" aria-label="YouTube">YouTube</a>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-gray-800 text-center text-gray-500 text-xs">
                 &copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.
-                &middot;
-                <a href="/feed.xml" class="hover:text-white">RSS</a>
-            </p>
+            </div>
         </div>
     </footer>
+
+    {{-- Floating Back-to-Top. The Vue app mounts <back-to-top> into
+         the same #app node, but having a no-JS fallback keeps the
+         public Blade preview usable. --}}
+    <a
+        href="#top"
+        class="fixed bottom-6 right-6 z-50 hidden md:flex w-12 h-12 rounded-full bg-blue-600 text-white items-center justify-center shadow-lg hover:bg-blue-700"
+        aria-label="Back to top"
+    >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+        </svg>
+    </a>
+
+    {{-- Random-post link: hit /api/posts/random and navigate. Wired
+         in the global app.js so it works across all pages. --}}
+    <script>
+        document.addEventListener('click', async (e) => {
+            const link = e.target.closest('[data-random]');
+            if (!link) return;
+            e.preventDefault();
+            try {
+                const res = await fetch('/api/posts/random', { headers: { Accept: 'application/json' } });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.slug) window.location.href = '/blog/' + data.slug;
+            } catch (_) {
+                // Silent: the link's href is /api/posts/random as a
+                // graceful no-JS fallback (browsers will JSON-render it).
+            }
+        });
+    </script>
 </body>
 </html>

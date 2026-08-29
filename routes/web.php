@@ -17,6 +17,9 @@ Route::get('/', function () {
 // `/api/posts/foo/comments` will match `posts/{slug}` with slug=foo/comments.
 Route::prefix('api')->group(function () {
     Route::get('/posts', [PostController::class, 'index']);
+    // /posts/random must come before /posts/{slug} so the literal
+    // segment wins. Used by the topbar's "Random" button.
+    Route::get('/posts/random', [PostController::class, 'random']);
     Route::get('/posts/{slug}/comments', [\App\Http\Controllers\Api\CommentController::class, 'index']);
     Route::post('/posts/{slug}/comments', [\App\Http\Controllers\Api\CommentController::class, 'store']);
     Route::get('/posts/{slug}/related', [PostController::class, 'related']);
@@ -68,6 +71,11 @@ Route::prefix('api')->group(function () {
         Route::put('/admin/tags/{tag}', [\App\Http\Controllers\Api\Admin\TagController::class, 'update']);
         Route::delete('/admin/tags/{tag}', [\App\Http\Controllers\Api\Admin\TagController::class, 'destroy']);
         Route::get('/admin/tags', [\App\Http\Controllers\Api\Admin\TagController::class, 'index']);
+
+        // Phase 6 — sidebar widget CRUD. The public sidebar reads
+        // these via /api/sidebar's `widgets` key (resolved server-side
+        // by App\Support\SidebarResolver).
+        Route::apiResource('admin/widgets', \App\Http\Controllers\Api\Admin\WidgetController::class);
     });
 });
 

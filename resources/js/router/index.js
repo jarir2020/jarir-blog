@@ -68,6 +68,12 @@ const routes = [
             { path: 'settings/tags',       name: 'AdminTags',        component: () => import('../views/admin/AdminTags.vue') },
             { path: 'settings/tags/new',       name: 'AdminTagNew',      component: () => import('../views/admin/AdminTagEdit.vue') },
             { path: 'settings/tags/:id',       name: 'AdminTagEdit',     component: () => import('../views/admin/AdminTagEdit.vue') },
+
+            // Phase 6 — sidebar widget CRUD. Same list + new/edit
+            // pattern as the taxonomy pages above.
+            { path: 'settings/widgets',       name: 'AdminWidgets',    component: () => import('../views/admin/AdminWidgets.vue') },
+            { path: 'settings/widgets/new',   name: 'AdminWidgetNew',  component: () => import('../views/admin/AdminWidgetEdit.vue') },
+            { path: 'settings/widgets/:id',   name: 'AdminWidgetEdit', component: () => import('../views/admin/AdminWidgetEdit.vue') },
         ],
     },
 ];

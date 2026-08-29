@@ -68,9 +68,12 @@ class DashboardViewTest extends TestCase
 
         // Blog theme tokens. The dashboard page has no blue button, so
         // we check the negative cases (no Breeze indigo, no figtree
-        // font import) and the positive page-background / footer colours.
+        // font import) and the positive page-background / footer
+        // colours. Phase 6 redesign: the public footer uses
+        // bg-gray-900 (one shade darker than the previous bg-gray-800)
+        // to match the dark reference site's footer.
         $this->assertStringContainsString('bg-gray-50', $response->getContent());
-        $this->assertStringContainsString('bg-gray-800', $response->getContent());
+        $this->assertStringContainsString('bg-gray-900', $response->getContent());
         $this->assertStringContainsString('text-blue-600', $response->getContent());
         $this->assertStringNotContainsString('bg-indigo-500', $response->getContent());
         $this->assertStringNotContainsString('fonts.bunny.net', $response->getContent());

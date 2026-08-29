@@ -40,6 +40,29 @@ class Phase3ApiTest extends TestCase
         $this->assertCount(1, $response->json('tags'));
         $this->assertSame('Laravel', $response->json('tags.0.name'));
         $this->assertSame(1, $response->json('tags.0.posts_count'));
+
+        // Phase 6 — sidebar also returns the admin-configured widget
+        // list, ordered by (order, id).
+        $this->assertIsArray($response->json('widgets'));
+    }
+
+    public function test_sidebar_excludes_disabled_widgets(): void
+    {
+        $w1 = \App\Models\Widget::create([
+            'type' => 'html', 'name' => 'Visible', 'enabled' => true, 'order' => 1,
+        ]);
+        $w2 = \App\Models\Widget::create([
+            'type' => 'html', 'name' => 'Hidden', 'enabled' => false, 'order' => 2,
+        ]);
+
+        $response = $this->getJson('/api/sidebar')->assertOk();
+
+        $names = collect($response->json('widgets'))->pluck('name');
+        $this->assertContains('Visible', $names);
+        $this->assertNotContains('Hidden', $names);
+
+        $w1->delete();
+        $w2->delete();
     }
 
     public function test_sidebar_excludes_unused_tags(): void

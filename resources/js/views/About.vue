@@ -1,14 +1,13 @@
 <template>
-    <AppHeader />
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-6">About Us</h1>
-            
+
             <div class="prose prose-lg max-w-none">
                 <p class="text-gray-700 leading-relaxed mb-6">
                     Welcome to Jarir Blog, your trusted source for insightful articles, news, and stories from around the world.
                 </p>
-                
+
                 <h2 class="text-2xl font-bold text-gray-900 mt-8 mb-4">Our Mission</h2>
                 <p class="text-gray-700 leading-relaxed mb-6">
                     We are dedicated to providing high-quality content that informs, educates, and inspires our readers. Our team of expert writers covers a wide range of topics including technology, lifestyle, business, travel, and more.
@@ -38,6 +37,7 @@
 </template>
 
 <script setup>
-import AppHeader from '../components/AppHeader.vue';
-// About page component
+// The Blade chrome provides the header/footer; this view is just
+// the page content.
 </script>
+
