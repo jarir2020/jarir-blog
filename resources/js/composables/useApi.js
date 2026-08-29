@@ -45,6 +45,17 @@ export const useApi = () => {
             return data;
         },
 
+        async getPage(slug) {
+            const { data } = await api.get(`/api/pages/${encodeURIComponent(slug)}`);
+            return data;
+        },
+
+        async getPages(parent = null) {
+            const params = parent ? { parent } : {};
+            const { data } = await api.get('/api/pages', { params });
+            return data;
+        },
+
         async getAuthor(username) {
             const { data } = await api.get(`/api/authors/${encodeURIComponent(username)}`);
             return data;

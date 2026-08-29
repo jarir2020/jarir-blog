@@ -29,7 +29,15 @@ const routes = [
     {
         path: '/about',
         name: 'About',
-        component: () => import('../views/About.vue')
+        component: () => import('../views/AboutIndex.vue')
+    },
+    {
+        // /about/:slug covers the four sub-pages (our-mission,
+        // what-we-offer, our-team, contact-us). Admin-editable via
+        // /admin/settings/pages.
+        path: '/about/:slug',
+        name: 'AboutPage',
+        component: () => import('../views/PageShow.vue')
     },
     {
         path: '/contact',
@@ -81,6 +89,13 @@ const routes = [
             { path: 'settings/social-links',       name: 'AdminSocialLinks',    component: () => import('../views/admin/AdminSocialLinks.vue') },
             { path: 'settings/social-links/new',   name: 'AdminSocialLinkNew',  component: () => import('../views/admin/AdminSocialLinkEdit.vue') },
             { path: 'settings/social-links/:id',   name: 'AdminSocialLinkEdit', component: () => import('../views/admin/AdminSocialLinkEdit.vue') },
+
+            // Phase 9 — admin-editable pages (About, Contact, and
+            // any future static page). The public /api/pages
+            // endpoints serve the same data the admin writes here.
+            { path: 'settings/pages',       name: 'AdminPages',    component: () => import('../views/admin/AdminPages.vue') },
+            { path: 'settings/pages/new',   name: 'AdminPageNew',  component: () => import('../views/admin/AdminPageEdit.vue') },
+            { path: 'settings/pages/:id',   name: 'AdminPageEdit', component: () => import('../views/admin/AdminPageEdit.vue') },
         ],
     },
 ];

@@ -31,6 +31,13 @@ Route::prefix('api')->group(function () {
     Route::get('/sidebar', [\App\Http\Controllers\Api\SidebarController::class, 'index']);
     Route::get('/social-links', [\App\Http\Controllers\Api\SocialLinkController::class, 'index']);
 
+    // Phase 9 — admin-editable pages. /api/pages lists top-level
+    // pages by default; /api/pages?parent=about returns the
+    // sub-pages. /api/pages/{slug} returns a single page with
+    // the markdown body already rendered to safe HTML.
+    Route::get('/pages', [\App\Http\Controllers\Api\PageController::class, 'index']);
+    Route::get('/pages/{slug}', [\App\Http\Controllers\Api\PageController::class, 'show'])->where('slug', '.*');
+
     Route::get('/authors/{username}', [\App\Http\Controllers\Api\AuthorController::class, 'show']);
     Route::get('/authors/{username}/posts', [\App\Http\Controllers\Api\AuthorController::class, 'posts']);
 
@@ -83,6 +90,10 @@ Route::prefix('api')->group(function () {
         // AppServiceProvider (one source of truth for the topbar
         // and footer).
         Route::apiResource('admin/social-links', \App\Http\Controllers\Api\Admin\SocialLinkController::class);
+
+        // Phase 9 — admin-editable pages. The public /api/pages
+        // endpoints serve the same data the admin writes here.
+        Route::apiResource('admin/pages', \App\Http\Controllers\Api\Admin\PageController::class);
     });
 });
 

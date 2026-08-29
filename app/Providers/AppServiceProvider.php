@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\SocialLink;
+use App\Support\MarkdownRenderer;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -13,7 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Phase 9 — MarkdownRenderer is built once per request
+        // (the underlying CommonMarkConverter is expensive). The
+        // controller's type-hint resolves the same singleton.
+        $this->app->singleton(MarkdownRenderer::class);
     }
 
     /**
