@@ -1,7 +1,11 @@
 @props(['isAdmin' => false, 'title' => null, 'description' => null])
 
 @php
-    $siteName = config('app.name', 'Jarir Blog');
+    // Phase 10 — site name + tagline come from the site_settings
+    // table (admin-editable). Falls back to APP_NAME if the table
+    // is missing (e.g. pre-migration test envs).
+    $siteName = $siteSettings->siteName();
+    $siteTagline = $siteSettings->siteTagline();
     $siteUrl = rtrim(config('app.url'), '/');
     // Categories for the horizontal nav. We pull them here (cheap
     // query) so the chrome renders before the SPA mounts. The
@@ -37,14 +41,14 @@
 
     <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:title" content="{{ $title ?? $siteName }}">
-    <meta property="og:description" content="{{ $description ?? 'Insightful articles, news, and stories from around the world.' }}">
+    <meta property="og:description" content="{{ $description ?? $siteTagline }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     <link rel="canonical" href="{{ url()->current() }}">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $title ?? $siteName }}">
-    <meta name="twitter:description" content="{{ $description ?? 'Insightful articles, news, and stories from around the world.' }}">
+    <meta name="twitter:description" content="{{ $description ?? $siteTagline }}">
 
     <link rel="alternate" type="application/atom+xml" title="{{ $siteName }} feed" href="{{ $siteUrl }}/feed.xml">
 
@@ -200,7 +204,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6 text-sm">
                 <div>
                     <h3 class="text-white font-bold mb-3">{{ $siteName }}</h3>
-                    <p class="text-gray-400">Insightful articles, news, and stories from around the world.</p>
+                    <p class="text-gray-400">{{ $siteTagline }}</p>
                 </div>
                 <div>
                     <h3 class="text-white font-bold mb-3">Explore</h3>

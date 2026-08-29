@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Support\Settings;
 use Illuminate\Http\Response;
 
 /**
@@ -13,10 +14,14 @@ use Illuminate\Http\Response;
  * Output is plain XML; we use a tiny hand-built template so we don't
  * have to pull in spatie/laravel-feed or similar. Validates with
  * `xmllint --noout`.
+ *
+ * Phase 10 — the feed title and subtitle now come from the
+ * site_settings table (admin-editable) so renaming the blog
+ * doesn't require a deploy.
  */
 class FeedController extends Controller
 {
-    public function index(): Response
+    public function index(Settings $settings): Response
     {
         $posts = Post::with('author')
             ->published()
@@ -25,6 +30,8 @@ class FeedController extends Controller
             ->get();
 
         $base = rtrim(config('app.url'), '/');
+        $title = $this->xml($settings->siteName());
+        $subtitle = $this->xml($settings->siteTagline());
 
         $updated = $posts->first()?->updated_at?->toAtomString()
             ?? now()->toAtomString();
@@ -47,8 +54,8 @@ class FeedController extends Controller
         $xml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Jarir Blog</title>
-  <subtitle>Insightful articles, news, and stories.</subtitle>
+  <title>{$title}</title>
+  <subtitle>{$subtitle}</subtitle>
   <link href="{$base}/"/>
   <link href="{$base}/feed.xml" rel="self"/>
   <id>{$base}/</id>

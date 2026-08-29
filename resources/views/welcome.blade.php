@@ -1,6 +1,7 @@
+@php $siteSettings = app(\App\Support\Settings::class); @endphp
 <x-site.site-layout
     title="Home"
-    description="Insightful articles, news, and stories from around the world."
+    :description="$siteSettings->siteTagline()"
 >
     <div id="app" class="flex-1 w-full">
         {{-- The Vue SPA mounts here. If the JS bundle fails to load,

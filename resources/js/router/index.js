@@ -109,6 +109,10 @@ const routes = [
             { path: 'settings/pages',       name: 'AdminPages',    component: () => import('../views/admin/AdminPages.vue') },
             { path: 'settings/pages/new',   name: 'AdminPageNew',  component: () => import('../views/admin/AdminPageEdit.vue') },
             { path: 'settings/pages/:id',   name: 'AdminPageEdit', component: () => import('../views/admin/AdminPageEdit.vue') },
+
+            // Phase 10 — site settings (site name, tagline,
+            // contact details). Single form, no listing.
+            { path: 'settings/site',         name: 'AdminSiteSettings', component: () => import('../views/admin/AdminSiteSettings.vue') },
         ],
     },
 ];

@@ -35,6 +35,14 @@ class AppServiceProvider extends ServiceProvider
                 ? SocialLink::query()->enabled()->ordered()->get()
                 : collect());
 
+            // Phase 10 — site settings (site name, tagline,
+            // contact details). Read once per request via the
+            // Settings service (which has its own 60s cache) and
+            // shared with the FeedController so the same source of
+            // truth renders the masthead, the footer, and the
+            // RSS feed title.
+            $view->with('siteSettings', app(\App\Support\Settings::class));
+
             // Phase 9c — every enabled top-level page shows up in
             // the chrome nav. After the slug-flattening migration,
             // that's "about" + the 4 about-sub-pages (now top-level

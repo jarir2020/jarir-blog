@@ -31,6 +31,11 @@ Route::prefix('api')->group(function () {
     Route::get('/sidebar', [\App\Http\Controllers\Api\SidebarController::class, 'index']);
     Route::get('/social-links', [\App\Http\Controllers\Api\SocialLinkController::class, 'index']);
 
+    // Phase 10 — admin-editable site settings (site name,
+    // tagline, contact details). Read by the public Vue SPA
+    // and the Blade chrome via a view composer.
+    Route::get('/site-settings', [\App\Http\Controllers\Api\SiteSettingsController::class, 'index']);
+
     // Phase 9 — admin-editable pages. /api/pages lists top-level
     // pages by default; /api/pages?parent=about returns the
     // sub-pages. /api/pages/{slug} returns a single page with
@@ -94,6 +99,12 @@ Route::prefix('api')->group(function () {
         // Phase 9 — admin-editable pages. The public /api/pages
         // endpoints serve the same data the admin writes here.
         Route::apiResource('admin/pages', \App\Http\Controllers\Api\Admin\PageController::class);
+
+        // Phase 10 — site settings (site name, tagline, contact
+        // details). Single-row CRUD: GET reads the full key/value
+        // map, PUT replaces any of the allowed keys.
+        Route::get('admin/site-settings', [\App\Http\Controllers\Api\Admin\SiteSettingsController::class, 'index']);
+        Route::put('admin/site-settings', [\App\Http\Controllers\Api\Admin\SiteSettingsController::class, 'update']);
     });
 });
 

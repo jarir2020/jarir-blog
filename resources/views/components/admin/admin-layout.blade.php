@@ -54,12 +54,19 @@
                 <a href="/admin" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin') ? 'bg-gray-800 text-white' : '' }}">Dashboard</a>
                 <a href="/admin/posts" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/posts*') ? 'bg-gray-800 text-white' : '' }}">Posts</a>
 
+                {{-- Phase 10 — site-wide settings. Top-level link
+                     (not inside the Post Settings group, since it's
+                     not taxonomy). The /settings/site/* check is
+                     intentionally narrow so the Post Settings group
+                     below doesn't auto-open for this one. --}}
+                <a href="/admin/settings/site" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/settings/site*') ? 'bg-gray-800 text-white' : '' }}">Settings</a>
+
                 {{-- Post Settings: collapsible group of taxonomy CRUD pages.
                      Uses <details> so the expand/collapse works without
                      JavaScript. The `open` attribute is set when we're
                      inside any /admin/settings/* URL so the group stays
                      expanded while drilling in. --}}
-                @php $isSettings = request()->is('admin/settings*'); @endphp
+                @php $isSettings = request()->is('admin/settings*') && ! request()->is('admin/settings/site*'); @endphp
                 <details class="space-y-0.5" {{ $isSettings ? 'open' : '' }}>
                     <summary class="flex items-center px-3 py-2 rounded-md cursor-pointer list-none hover:bg-gray-800 hover:text-white {{ $isSettings ? 'text-white' : '' }}">
                         <span>Post Settings</span>

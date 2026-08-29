@@ -56,6 +56,11 @@ export const useApi = () => {
             return data;
         },
 
+        async getSiteSettings() {
+            const { data } = await api.get('/api/site-settings');
+            return data;
+        },
+
         async getAuthor(username) {
             const { data } = await api.get(`/api/authors/${encodeURIComponent(username)}`);
             return data;
