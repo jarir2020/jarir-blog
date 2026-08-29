@@ -27,19 +27,32 @@ const routes = [
         component: () => import('../views/Author.vue')
     },
     {
+        // /about is the About page (handled by the catch-all Page
+        // component, which fetches /api/pages/about). Listed
+        // explicitly so the chrome nav highlights "About Us" when
+        // the user is on /about or any /about/* path.
         path: '/about',
         name: 'About',
-        component: () => import('../views/AboutIndex.vue')
+        component: () => import('../views/PageShow.vue'),
+        props: { slug: 'about' },
     },
     {
-        // /about/:slug covers the four sub-pages (our-mission,
-        // what-we-offer, our-team, contact-us). Admin-editable via
-        // /admin/settings/pages.
-        path: '/about/:slug',
-        name: 'AboutPage',
+        // Catch-all for admin-editable pages (Phase 9c). With
+        // flat slugs, /our-mission, /contact, /privacy, /terms
+        // etc. all hit this. The component fetches the page by
+        // route.params.slug. Listed LAST so the more-specific
+        // routes (Home, /blog/:slug, /category/:slug, /search,
+        // /author/:username, /about, /contact) take priority.
+        path: '/:slug(.*)*',
+        name: 'Page',
         component: () => import('../views/PageShow.vue')
     },
     {
+        // /contact stays its own route so the Contact form
+        // component handles the form. (The chrome "contact" page
+        // exists in the DB too but Contact.vue is the canonical
+        // landing — it renders the form below the admin-editable
+        // intro fetched from /api/pages/contact.)
         path: '/contact',
         name: 'Contact',
         component: () => import('../views/Contact.vue')

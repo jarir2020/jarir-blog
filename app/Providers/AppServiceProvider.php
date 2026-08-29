@@ -35,21 +35,17 @@ class AppServiceProvider extends ServiceProvider
                 ? SocialLink::query()->enabled()->ordered()->get()
                 : collect());
 
-            // Phase 9 — pages that appear in the chrome nav
-            // (masthead + footer). We include:
-            //   - top-level pages (parent_slug IS NULL), e.g.
-            //     "about", "contact"
-            //   - sub-pages of the "about" parent, e.g.
-            //     "about/our-mission", "about/our-team"
-            // Other sub-pages (a future "docs/something") stay
-            // reachable only by direct URL.
+            // Phase 9c — every enabled top-level page shows up in
+            // the chrome nav. After the slug-flattening migration,
+            // that's "about" + the 4 about-sub-pages (now top-level
+            // slugs: our-mission, our-vision, what-we-offer, our-team)
+            // + "contact". We exclude the slug "about" from the loop
+            // (it's already in the masthead's first row as the "Home"
+            // link) and we re-order so "About Us" is first.
             $view->with('navPages', Schema::hasTable('pages')
                 ? Page::query()
                     ->enabled()
-                    ->where(function ($q) {
-                        $q->whereNull('parent_slug')
-                            ->orWhere('parent_slug', 'about');
-                    })
+                    ->whereNull('parent_slug')
                     ->ordered()
                     ->get()
                 : collect());

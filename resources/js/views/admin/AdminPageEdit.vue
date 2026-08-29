@@ -17,12 +17,11 @@
                         type="text"
                         required
                         maxlength="80"
-                        placeholder="about / about/our-mission / contact"
+                        placeholder="about / our-mission / contact / privacy"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md font-mono text-sm"
                     />
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        The full URL path. Use <code class="font-mono">about</code> for the index,
-                        <code class="font-mono">about/our-mission</code> for a sub-page, etc.
+                        The URL path. Lowercase, hyphens, dots and slashes are allowed. Top-level pages (e.g. <code class="font-mono">our-mission</code>) appear in the masthead nav.
                     </p>
                 </div>
                 <div>
@@ -108,16 +107,16 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label for="p-parent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Parent slug</label>
+                    <label for="p-parent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Parent slug <span class="text-gray-400 font-normal">(optional)</span></label>
                     <select
                         id="p-parent"
                         v-model="form.parent_slug"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md font-mono text-sm"
                     >
-                        <option value="">(none — top-level page)</option>
+                        <option value="">(none — top-level page, appears in masthead nav)</option>
                         <option v-for="p in parentOptions" :key="p.slug" :value="p.slug">{{ p.slug }} — {{ p.title }}</option>
                     </select>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Used to group on index pages.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave empty to make this a top-level page that shows in the masthead. Use a parent for grouping on future index pages.</p>
                 </div>
                 <div>
                     <label for="p-order" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order</label>

@@ -36,7 +36,7 @@ class PageTest extends TestCase
         Page::create(['slug' => 'about', 'title' => 'About', 'body' => 'b', 'enabled' => true]);
 
         $create = $this->actingAs($admin)->postJson('/api/admin/pages', [
-            'slug' => 'about/our-mission',
+            'slug' => 'our-mission',
             'title' => 'Our Mission',
             'excerpt' => 'What we set out to do.',
             'body' => '# Mission',
@@ -62,49 +62,53 @@ class PageTest extends TestCase
 
     public function test_page_index_returns_top_level_pages_by_default(): void
     {
-        // Three rows; two have parent_slug = 'about'.
-        Page::create(['slug' => 'about',         'title' => 'About',     'body' => 'b', 'enabled' => true]);
-        Page::create(['slug' => 'about/our-team', 'title' => 'Team',     'body' => 'b', 'parent_slug' => 'about', 'enabled' => true, 'order' => 1]);
-        Page::create(['slug' => 'contact',       'title' => 'Contact',   'body' => 'b', 'enabled' => true]);
+        // After the slug-flattening migration (Phase 9c) every
+        // admin-editable page is top-level (parent_slug IS NULL).
+        Page::create(['slug' => 'about',       'title' => 'About',    'body' => 'b', 'enabled' => true]);
+        Page::create(['slug' => 'our-mission', 'title' => 'Mission',  'body' => 'b', 'enabled' => true, 'order' => 1]);
+        Page::create(['slug' => 'contact',     'title' => 'Contact',  'body' => 'b', 'enabled' => true, 'order' => 5]);
 
         $response = $this->getJson('/api/pages')->assertOk();
         $slugs = collect($response->json('data'))->pluck('slug')->all();
-        $this->assertSame(['about', 'contact'], $slugs);
+        $this->assertSame(['about', 'our-mission', 'contact'], $slugs);
     }
 
     public function test_page_index_with_parent_filter_returns_subpages(): void
     {
+        // The `?parent=X` filter is still useful for future nested
+        // groups (e.g. an admin might add a "docs/api" parent
+        // later). It just doesn't match anything now that all
+        // about-related pages are top-level.
         Page::create(['slug' => 'about',           'title' => 'About', 'body' => 'b', 'enabled' => true]);
-        Page::create(['slug' => 'about/our-mission', 'title' => 'Mission', 'body' => 'b', 'parent_slug' => 'about', 'enabled' => true, 'order' => 1]);
-        Page::create(['slug' => 'about/our-team',    'title' => 'Team',    'body' => 'b', 'parent_slug' => 'about', 'enabled' => true, 'order' => 2]);
+        Page::create(['slug' => 'our-mission', 'title' => 'Mission', 'body' => 'b', 'enabled' => true, 'order' => 1]);
+        Page::create(['slug' => 'our-team',    'title' => 'Team',    'body' => 'b', 'enabled' => true, 'order' => 2]);
         Page::create(['slug' => 'contact',         'title' => 'Contact', 'body' => 'b', 'enabled' => true]);
 
         $response = $this->getJson('/api/pages?parent=about')->assertOk();
-        $slugs = collect($response->json('data'))->pluck('slug')->all();
-        $this->assertSame(['about/our-mission', 'about/our-team'], $slugs);
+        $this->assertSame([], $response->json('data'), 'No rows have parent_slug=about now.');
     }
 
     public function test_page_index_excludes_disabled(): void
     {
-        Page::create(['slug' => 'about',         'title' => 'About', 'body' => 'b', 'enabled' => true]);
-        Page::create(['slug' => 'about/sub-1',    'title' => 'Sub 1',  'body' => 'b', 'parent_slug' => 'about', 'enabled' => false]);
-        Page::create(['slug' => 'about/sub-2',    'title' => 'Sub 2',  'body' => 'b', 'parent_slug' => 'about', 'enabled' => true, 'order' => 1]);
+        Page::create(['slug' => 'about',       'title' => 'About', 'body' => 'b', 'enabled' => true]);
+        Page::create(['slug' => 'draft-page', 'title' => 'Draft', 'body' => 'b', 'enabled' => false, 'order' => 1]);
+        Page::create(['slug' => 'contact',     'title' => 'Contact', 'body' => 'b', 'enabled' => true, 'order' => 2]);
 
-        $response = $this->getJson('/api/pages?parent=about')->assertOk();
+        $response = $this->getJson('/api/pages')->assertOk();
         $slugs = collect($response->json('data'))->pluck('slug')->all();
-        $this->assertSame(['about/sub-2'], $slugs);
+        $this->assertSame(['about', 'contact'], $slugs, 'Disabled rows must be excluded.');
     }
 
     public function test_page_show_renders_markdown_to_html(): void
     {
         $page = Page::create([
-            'slug' => 'about/our-mission',
+            'slug' => 'our-mission',
             'title' => 'Our Mission',
             'body' => "# Heading\n\nThis is **bold** and this is a [link](https://example.com).",
             'enabled' => true,
         ]);
 
-        $response = $this->getJson('/api/pages/about/our-mission')->assertOk();
+        $response = $this->getJson('/api/pages/our-mission')->assertOk();
         $body = $response->json('page.body_html');
 
         $this->assertStringContainsString('<h1>Heading</h1>', $body);
@@ -173,7 +177,7 @@ class PageTest extends TestCase
         $admin = $this->admin();
         $this->actingAs($admin)
             ->postJson('/api/admin/pages', [
-                'slug' => 'about/our-mission',
+                'slug' => 'our-mission',
                 'title' => 'Mission',
                 'body' => 'b',
                 'parent_slug' => 'no-such-page',
@@ -203,12 +207,11 @@ class PageTest extends TestCase
         $now = now();
         \Illuminate\Support\Facades\DB::table('pages')->insert([
             ['slug' => 'about', 'title' => 'About Us', 'body' => 'b', 'order' => 1, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'about/our-mission', 'title' => 'Our Mission', 'body' => 'b', 'order' => 1, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'about/our-vision', 'title' => 'Our Vision', 'body' => 'b', 'order' => 2, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'about/what-we-offer', 'title' => 'What We Offer', 'body' => 'b', 'order' => 3, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'about/our-team', 'title' => 'Our Team', 'body' => 'b', 'order' => 4, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'about/contact-us', 'title' => 'Contact Us', 'body' => 'b', 'order' => 5, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'contact', 'title' => 'Contact Us', 'body' => 'b', 'order' => 2, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'our-mission', 'title' => 'Our Mission', 'body' => 'b', 'order' => 1, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'our-vision', 'title' => 'Our Vision', 'body' => 'b', 'order' => 2, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'what-we-offer', 'title' => 'What We Offer', 'body' => 'b', 'order' => 3, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'our-team', 'title' => 'Our Team', 'body' => 'b', 'order' => 4, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'contact', 'title' => 'Contact Us', 'body' => 'b', 'order' => 5, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         $about = Page::where('slug', 'about')->first();
@@ -219,10 +222,11 @@ class PageTest extends TestCase
         $this->assertNotNull($contact);
         $this->assertTrue($contact->enabled);
 
-        $subs = Page::where('parent_slug', 'about')->get();
-        $this->assertCount(5, $subs, 'About has 5 sub-pages: our-mission, our-vision, what-we-offer, our-team, contact-us.');
+        // Phase 9c — all about-related pages are top-level now;
+        // the parent_slug column is unused for this group.
+        $this->assertCount(0, Page::where('parent_slug', 'about')->get());
 
-        $this->assertNotNull(Page::where('slug', 'about/our-vision')->first());
+        $this->assertNotNull(Page::where('slug', 'our-vision')->first());
     }
 
     public function test_page_show_includes_hero_image(): void
@@ -265,7 +269,7 @@ class PageTest extends TestCase
     {
         $admin = $this->admin();
         Page::create(['slug' => 'about',           'title' => 'About', 'body' => 'b', 'enabled' => true]);
-        Page::create(['slug' => 'about/our-mission', 'title' => 'Mission', 'body' => 'b', 'parent_slug' => 'about', 'enabled' => true]);
+        Page::create(['slug' => 'our-mission', 'title' => 'Mission', 'body' => 'b', 'parent_slug' => 'about', 'enabled' => true]);
 
         $about = Page::where('slug', 'about')->first();
         $this->actingAs($admin)

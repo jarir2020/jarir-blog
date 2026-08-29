@@ -1,28 +1,32 @@
 <template>
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-8">
-            <router-link
-                v-if="page?.parent_slug"
-                :to="{ name: 'About' }"
-                class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-            >← Back to {{ parentTitle }}</router-link>
+        <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <img
+                v-if="page?.hero_image"
+                :src="page.hero_image"
+                :alt="page.title"
+                class="w-full h-64 md:h-80 object-cover"
+                @error="(e) => (e.target.style.display = 'none')"
+            />
 
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2 mb-4">
-                {{ page?.title || 'Page' }}
-            </h1>
+            <div class="p-8">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                    {{ page?.title || slug }}
+                </h1>
 
-            <p v-if="error" class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm text-red-700 dark:text-red-300">
-                {{ error }}
-            </p>
+                <p v-if="error" class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm text-red-700 dark:text-red-300">
+                    {{ error }}
+                </p>
 
-            <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+                <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
 
-            <article
-                v-if="page"
-                class="prose prose-lg dark:prose-invert max-w-none"
-                v-html="page.body_html"
-            ></article>
-        </div>
+                <article
+                    v-if="page"
+                    class="prose prose-lg dark:prose-invert max-w-none"
+                    v-html="page.body_html"
+                ></article>
+            </div>
+        </article>
     </div>
 </template>
 
@@ -38,19 +42,26 @@ const loading = ref(true);
 const error = ref(null);
 const page = ref(null);
 
-// "Back to About" link shows the parent page's title when
-// available. Falls back to "About" for the index case.
-const parentTitle = computed(() => {
-    if (!page.value?.parent_slug) return 'About';
-    return page.value.parent_slug === 'about' ? 'About' : page.value.parent_slug;
+// Vue Router 4's `/:slug(.*)*` puts the matched path into
+// `route.params.slug` as a string (when defined). The /about
+// route is listed explicitly and passes a `slug` prop. Fall
+// back to the prop if the param is missing.
+const slugProp = defineProps({ slug: { type: String, default: '' } });
+
+const slug = computed(() => {
+    if (slugProp.slug) return slugProp.slug;
+    const raw = route.params.slug ?? '';
+    if (Array.isArray(raw)) return raw.filter(Boolean).join('/');
+    return String(raw).replace(/^\/+/, '');
 });
 
-const loadPage = async (slug) => {
+const loadPage = async (s) => {
+    if (!s) return;
     loading.value = true;
     error.value = null;
     page.value = null;
     try {
-        const data = await api.getPage(slug);
+        const data = await api.getPage(s);
         page.value = data.page;
     } catch (e) {
         if (e?.response?.status === 404) {
@@ -65,12 +76,8 @@ const loadPage = async (slug) => {
 
 watch(
     () => route.params.slug,
-    (slug) => {
-        if (slug) loadPage(slug);
-    },
+    (s) => loadPage(typeof s === 'string' ? s : (s ?? []).filter(Boolean).join('/')),
 );
 
-onMounted(() => {
-    if (route.params.slug) loadPage(route.params.slug);
-});
+onMounted(() => loadPage(slug.value));
 </script>
