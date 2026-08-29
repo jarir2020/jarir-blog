@@ -112,15 +112,79 @@ class SidebarResolver
 
     private function resolveVideo(Widget $widget): array
     {
-        // v1 placeholder. The widget renders a "Video gallery coming
-        // soon" notice; if a future version pulls from a YouTube
-        // channel, the settings already hold a `placeholder` slot.
+        // The admin pastes one YouTube URL per line in the widget
+        // settings. We accept every common YouTube URL shape:
+        //   https://www.youtube.com/watch?v=ID
+        //   https://youtu.be/ID
+        //   https://www.youtube.com/embed/ID
+        //   https://www.youtube.com/shorts/ID
+        // and a bare 11-character ID. Each parsed video becomes
+        // {id, embed_url, thumbnail_url} for the Sidebar component.
+        $rawUrls = $widget->settings['urls'] ?? '';
+        $videos = $this->parseYouTubeUrls($rawUrls);
+
         return [
             'type' => 'video',
             'id' => $widget->id,
             'name' => $widget->name,
-            'settings' => $widget->settings ?? [],
+            'videos' => $videos,
         ];
+    }
+
+    /**
+     * Parse a newline-separated list of YouTube URLs into a
+     * normalised [{id, embed_url, thumbnail_url}, ...] array.
+     * Returns an empty array for blank input.
+     */
+    private function parseYouTubeUrls(string $raw): array
+    {
+        $out = [];
+        $seen = [];
+        foreach (preg_split('/\r\n|\r|\n/', $raw) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+            $id = $this->extractYouTubeId($line);
+            if ($id === null || isset($seen[$id])) {
+                continue;
+            }
+            $seen[$id] = true;
+            $out[] = [
+                'id' => $id,
+                'embed_url' => 'https://www.youtube.com/embed/'.$id,
+                // hqdefault is a 480x360 thumbnail that always exists;
+                // mqdefault / sddefault / maxresdefault may not.
+                'thumbnail_url' => 'https://i.ytimg.com/vi/'.$id.'/hqdefault.jpg',
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Pull the 11-character video id out of any YouTube URL shape.
+     * Returns null if the input doesn't look like a YouTube id at
+     * all. We do a length + character set check on bare-id input
+     * so an admin can paste just `dQw4w9WgXcQ` and have it work.
+     */
+    private function extractYouTubeId(string $value): ?string
+    {
+        // Bare 11-char id (A–Z, a–z, 0–9, _, -).
+        if (preg_match('/^[A-Za-z0-9_-]{11}$/', $value)) {
+            return $value;
+        }
+
+        // ?v=ID
+        if (preg_match('/[?&]v=([A-Za-z0-9_-]{11})/', $value, $m)) {
+            return $m[1];
+        }
+
+        // youtu.be/ID or youtube.com/(embed|shorts|v)/ID
+        if (preg_match('#(?:youtu\.be/|youtube\.com/(?:embed|shorts|v)/)([A-Za-z0-9_-]{11})#', $value, $m)) {
+            return $m[1];
+        }
+
+        return null;
     }
 
     private function resolveHtml(Widget $widget): array

@@ -102,4 +102,54 @@ class WidgetApiTest extends TestCase
 
         $widget->delete();
     }
+
+    public function test_video_widget_resolves_youtube_urls(): void
+    {
+        // The admin types a free-form list of YouTube URLs; the
+        // public endpoint parses them into {id, embed_url,
+        // thumbnail_url}. We verify against the admin's stored
+        // settings first (to make sure save worked) and against
+        // the public /api/sidebar (to make sure the resolver
+        // produces the expected shape for the Vue component).
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->postJson('/api/admin/widgets', [
+            'name' => 'Videos',
+            'type' => 'video',
+            'position' => 'right',
+            'settings' => [
+                'urls' => "https://www.youtube.com/watch?v=dQw4w9WgXcQ\nhttps://youtu.be/oHg5SJYRHA4",
+            ],
+        ])->assertCreated();
+
+        // The raw `urls` field should round-trip through the JSON
+        // column untouched — the parsing happens at read time.
+        $widget = Widget::where('name', 'Videos')->first();
+        $this->assertSame(
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ\nhttps://youtu.be/oHg5SJYRHA4",
+            $widget->settings['urls'],
+        );
+
+        // The public endpoint (no auth) returns the parsed videos.
+        $response = $this->getJson('/api/sidebar')->assertOk();
+        $video = collect($response->json('widgets'))->firstWhere('type', 'video');
+        $this->assertNotNull($video);
+        $this->assertCount(2, $video['videos']);
+        $this->assertSame('dQw4w9WgXcQ', $video['videos'][0]['id']);
+        $this->assertSame('oHg5SJYRHA4', $video['videos'][1]['id']);
+    }
+
+    public function test_video_widget_with_empty_settings_returns_no_videos(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)->postJson('/api/admin/widgets', [
+            'name' => 'Empty videos',
+            'type' => 'video',
+            'position' => 'right',
+        ])->assertCreated();
+
+        $response = $this->getJson('/api/sidebar')->assertOk();
+        $video = collect($response->json('widgets'))->firstWhere('type', 'video');
+        $this->assertSame([], $video['videos']);
+    }
 }

@@ -88,13 +88,44 @@
                 <p v-else class="text-sm text-gray-500 dark:text-gray-400">No posts in this category yet.</p>
             </section>
 
-            <!-- Video gallery (placeholder; YouTube channel id is in widget.settings) -->
+            <!-- Video gallery. The admin pastes one YouTube URL per
+                 line; we render a thumbnail grid; clicking a
+                 thumbnail opens a modal with the embedded player.
+                 Each video is loaded lazily (iframe only mounts on
+                 click) so the page stays light. -->
             <section
                 v-else-if="widget.type === 'video'"
                 class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5"
             >
                 <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-3">{{ widget.name }}</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Video gallery coming soon.</p>
+                <p v-if="!widget.videos || widget.videos.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
+                    No videos yet. The admin can add YouTube URLs in Settings → Widgets.
+                </p>
+                <div v-else class="grid grid-cols-2 gap-2">
+                    <button
+                        v-for="v in widget.videos"
+                        :key="v.id"
+                        type="button"
+                        class="group relative block aspect-video overflow-hidden rounded border border-gray-200 dark:border-gray-700 hover:opacity-90"
+                        :aria-label="`Play video ${v.id}`"
+                        @click="openVideo(v)"
+                    >
+                        <img
+                            :src="v.thumbnail_url"
+                            :alt="`Video ${v.id}`"
+                            loading="lazy"
+                            class="w-full h-full object-cover"
+                            @error="(e) => (e.target.style.display = 'none')"
+                        />
+                        <span class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
+                            <span class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center shadow">
+                                <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </span>
+                        </span>
+                    </button>
+                </div>
             </section>
 
             <!-- Arbitrary HTML -->
@@ -174,10 +205,47 @@
             No sidebar widgets configured.
         </p>
     </aside>
+
+    <!-- Video modal. Mounted only when a video is opened so we
+         don't load the YouTube iframe on every page. Closing
+         unmounts it (v-if), which tears down the iframe and stops
+         the video. -->
+    <Teleport to="body">
+        <div
+            v-if="openVideoId"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
+            role="dialog"
+            aria-modal="true"
+            @click.self="closeVideo"
+        >
+            <div class="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden shadow-2xl">
+                <button
+                    type="button"
+                    class="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+                    aria-label="Close video"
+                    @click="closeVideo"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+                <div class="aspect-video">
+                    <iframe
+                        :src="`https://www.youtube.com/embed/${openVideoId}?autoplay=1&rel=0`"
+                        class="w-full h-full"
+                        title="YouTube video"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                    ></iframe>
+                </div>
+            </div>
+        </div>
+    </Teleport>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { formatDate } from '../composables/format';
 import useApi from '../composables/useApi';
@@ -198,6 +266,20 @@ const email = ref('');
 const submitting = ref(false);
 const message = ref(null);
 const messageClass = ref('');
+
+// Video modal state. openVideoId is null when the modal is closed;
+// setting it to a YouTube id opens the modal and mounts the iframe.
+const openVideoId = ref(null);
+const openVideo = (v) => { openVideoId.value = v.id; };
+const closeVideo = () => { openVideoId.value = null; };
+const onKey = (e) => { if (e.key === 'Escape') closeVideo(); };
+
+onMounted(() => {
+    document.addEventListener('keydown', onKey);
+});
+onUnmounted(() => {
+    document.removeEventListener('keydown', onKey);
+});
 
 const load = async () => {
     try {

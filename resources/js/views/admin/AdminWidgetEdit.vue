@@ -139,14 +139,23 @@
                 </div>
 
                 <div v-else-if="form.type === 'video'" class="space-y-3">
-                    <label for="w-vid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">YouTube channel id (placeholder)</label>
-                    <input
+                    <label for="w-vid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">YouTube URLs (one per line)</label>
+                    <textarea
                         id="w-vid"
-                        v-model="settings.placeholder"
-                        type="text"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
+                        v-model="settings.urls"
+                        rows="5"
+                        placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ&#10;https://youtu.be/oHg5SJYRHA4&#10;dQw4w9WgXcQ"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md font-mono text-sm"
                     />
-                    <p class="text-xs text-gray-500 dark:text-gray-400">The video gallery is a placeholder in this version — settings are stored but not yet rendered.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Paste one YouTube URL per line. Accepts any of:
+                        <code class="font-mono">youtube.com/watch?v=ID</code>,
+                        <code class="font-mono">youtu.be/ID</code>,
+                        <code class="font-mono">youtube.com/embed/ID</code>,
+                        or a bare 11-character video id. Each link is parsed
+                        server-side and rendered as a thumbnail in the sidebar;
+                        clicking opens a lightbox with the embedded player.
+                    </p>
                 </div>
 
                 <p v-else class="text-sm text-gray-500 dark:text-gray-400">No type-specific settings for this widget type.</p>
@@ -199,7 +208,7 @@ watch(
         if (t === 'category') settings.value = { category_id: null, title: '' };
         else if (t === 'html') settings.value = { body: '' };
         else if (t === 'social') settings.value = { links: [] };
-        else if (t === 'video') settings.value = { placeholder: '' };
+        else if (t === 'video') settings.value = { urls: '' };
         else settings.value = {};
     },
     { immediate: true },
