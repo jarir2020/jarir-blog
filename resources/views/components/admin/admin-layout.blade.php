@@ -1,7 +1,12 @@
 @props(['title' => null])
 
 @php
-    $siteName = config('app.name', 'Jarir Blog');
+    // Phase 10b — site name + theme color now come from the
+    // site_settings table (admin-editable). The settings service
+    // is safe to call even in pre-migration test envs (it returns
+    // sensible fallbacks when the table is missing).
+    $siteSettings = app(\App\Support\Settings::class);
+    $siteName = $siteSettings->siteName();
     // Pending-comment count for the sidebar badge. Only show the
     // badge when the user is an admin; otherwise the count is 0 and
     // the badge would never appear anyway.

@@ -30,6 +30,9 @@ class SiteSettingsController extends Controller
     private const ALLOWED_KEYS = [
         'site.name',
         'site.tagline',
+        'site.no_js_message',
+        'site.loading_message',
+        'site.theme_color',
         'contact.email',
         'contact.address',
         'contact.phone',

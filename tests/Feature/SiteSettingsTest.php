@@ -24,6 +24,11 @@ class SiteSettingsTest extends TestCase
             Setting::where('key', 'site.tagline')->value('value'),
         );
         $this->assertSame('contact@jarirblog.com', Setting::where('key', 'contact.email')->value('value'));
+
+        // Phase 10b — additional chrome strings.
+        $this->assertSame('Loading the blog…', Setting::where('key', 'site.loading_message')->value('value'));
+        $this->assertSame('#ffffff', Setting::where('key', 'site.theme_color')->value('value'));
+        $this->assertNotEmpty(Setting::where('key', 'site.no_js_message')->value('value'));
     }
 
     public function test_public_endpoint_returns_all_settings(): void
@@ -118,6 +123,11 @@ class SiteSettingsTest extends TestCase
         $this->assertSame('contact@jarirblog.com', $service->contactEmail());
         $this->assertSame('123 Blog Street, Dhaka, Bangladesh', $service->contactAddress());
         $this->assertSame('+880 1234 567890', $service->contactPhone());
+
+        // Phase 10b — new accessors.
+        $this->assertSame('Loading the blog…', $service->loadingMessage());
+        $this->assertSame('#ffffff', $service->themeColor());
+        $this->assertNotEmpty($service->noJsMessage());
     }
 
     public function test_settings_service_returns_safe_default_when_table_missing(): void

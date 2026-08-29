@@ -45,6 +45,54 @@
             </fieldset>
 
             <fieldset class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <legend class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Loading &amp; fallbacks</legend>
+
+                <div>
+                    <label for="s-loading" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loading message</label>
+                    <input
+                        id="s-loading"
+                        v-model="form['site.loading_message']"
+                        type="text"
+                        maxlength="200"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
+                    />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Short placeholder shown while the Vue SPA bundle is loading.</p>
+                </div>
+
+                <div>
+                    <label for="s-nojs" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">No-JS fallback</label>
+                    <textarea
+                        id="s-nojs"
+                        v-model="form['site.no_js_message']"
+                        rows="2"
+                        maxlength="500"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
+                    />
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Shown inside &lt;noscript&gt; to visitors with JavaScript disabled.</p>
+                </div>
+
+                <div>
+                    <label for="s-theme-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Browser theme color</label>
+                    <div class="flex items-center gap-2 max-w-md">
+                        <input
+                            id="s-theme-color"
+                            v-model="form['site.theme_color']"
+                            type="color"
+                            class="h-10 w-12 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer"
+                        />
+                        <input
+                            v-model="form['site.theme_color']"
+                            type="text"
+                            maxlength="9"
+                            pattern="^#[0-9a-fA-F]{6}$"
+                            class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md font-mono text-sm"
+                        />
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Hex (e.g. #ffffff) for the browser's address-bar color on mobile.</p>
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <legend class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Contact</legend>
 
                 <div>
@@ -108,6 +156,9 @@ import { onMounted, ref } from 'vue';
 const form = ref({
     'site.name': '',
     'site.tagline': '',
+    'site.no_js_message': '',
+    'site.loading_message': '',
+    'site.theme_color': '',
     'contact.email': '',
     'contact.address': '',
     'contact.phone': '',

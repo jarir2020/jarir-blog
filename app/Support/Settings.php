@@ -61,6 +61,39 @@ class Settings
         return $this->get('site.tagline', 'Insightful articles, news, and stories.');
     }
 
+    /**
+     * Text shown to visitors with JS disabled. Phase 10b — the
+     * no-JS fallback in welcome.blade.php is now admin-editable
+     * (and the leading "The blog needs JavaScript" line is part
+     * of the same string so admins can rewrite the whole message).
+     */
+    public function noJsMessage(): string
+    {
+        return $this->get(
+            'site.no_js_message',
+            'The blog needs JavaScript to render. Please enable it to browse posts.',
+        );
+    }
+
+    /**
+     * Text shown while the Vue SPA bundle is loading. Short,
+     * center-of-screen placeholder.
+     */
+    public function loadingMessage(): string
+    {
+        return $this->get('site.loading_message', 'Loading the blog…');
+    }
+
+    /**
+     * Hex color for the browser's <meta name="theme-color">
+     * meta tag (the color of the address bar on mobile Safari /
+     * Chrome). Falls back to white when unset.
+     */
+    public function themeColor(): string
+    {
+        return $this->get('site.theme_color', '#ffffff');
+    }
+
     public function contactEmail(): string
     {
         return $this->get('contact.email', 'contact@example.com');
