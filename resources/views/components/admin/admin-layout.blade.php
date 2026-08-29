@@ -27,8 +27,20 @@
     <link rel="canonical" href="{{ url()->current() }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Same FOUC script as the public layout, so the admin main
+         area respects the user's theme choice on first paint. The
+         sidebar stays dark (it's editorial chrome) regardless. --}}
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('theme');
+                var dark = saved === 'dark' || (saved !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (dark) document.documentElement.classList.add('dark');
+            } catch (e) {}
+        })();
+    </script>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 antialiased">
+<body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 antialiased">
     <div class="flex min-h-screen">
         {{-- Sidebar (server-side mirror of the Vue admin sidebar) --}}
         <aside class="w-60 shrink-0 bg-gray-900 text-gray-300 flex flex-col">
@@ -84,15 +96,15 @@
 
         {{-- Main --}}
         <div class="flex-1 flex flex-col min-w-0">
-            <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-end gap-4 text-sm">
+            <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-end gap-4 text-sm">
                 @auth
-                    <span class="text-gray-700">
+                    <span class="text-gray-700 dark:text-gray-200">
                         {{ auth()->user()->name }}
-                        <span class="text-xs text-gray-500 ml-1">({{ auth()->user()->role }})</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">({{ auth()->user()->role }})</span>
                     </span>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                        <button type="submit" class="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
                             Log out
                         </button>
                     </form>

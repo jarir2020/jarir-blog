@@ -3,8 +3,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
                 <div class="mb-6">
-                    <h1 class="text-3xl font-bold text-gray-900">Search</h1>
-                    <p class="text-gray-600 mt-2">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Search</h1>
+                    <p class="text-gray-600 dark:text-gray-400 mt-2">
                         <span v-if="query">Results for &ldquo;<strong>{{ query }}</strong>&rdquo;:</span>
                         <span v-else>Type a query to search published posts.</span>
                     </p>
@@ -15,7 +15,7 @@
                         v-model="inputValue"
                         type="search"
                         placeholder="Search posts…"
-                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <button
                         type="submit"
@@ -23,9 +23,9 @@
                     >Search</button>
                 </form>
 
-                <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ error }}</p>
-                <p v-if="loading" class="text-sm text-gray-500">Searching…</p>
-                <p v-if="!loading && results.length === 0 && query" class="text-sm text-gray-500">
+                <p v-if="error" class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm text-red-700 dark:text-red-300">{{ error }}</p>
+                <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Searching…</p>
+                <p v-if="!loading && results.length === 0 && query" class="text-sm text-gray-500 dark:text-gray-400">
                     No posts matched &ldquo;{{ query }}&rdquo;.
                 </p>
 
@@ -35,7 +35,7 @@
 
                 <nav v-if="lastPage > 1" class="mt-8 flex justify-center gap-2">
                     <button
-                        class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                         :disabled="currentPage <= 1"
                         @click="changePage(currentPage - 1)"
                     >Previous</button>
@@ -43,7 +43,7 @@
                         {{ currentPage }} / {{ lastPage }}
                     </span>
                     <button
-                        class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                         :disabled="currentPage >= lastPage"
                         @click="changePage(currentPage + 1)"
                     >Next</button>

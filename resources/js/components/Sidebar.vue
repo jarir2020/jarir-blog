@@ -9,10 +9,10 @@
             <!-- Tabbed Popular / Recent / Comments -->
             <section
                 v-if="widget.type === 'popular_recent_comments'"
-                class="bg-white rounded-lg shadow-sm p-5"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5"
             >
-                <h3 class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
-                <div class="flex border-b border-gray-200 mb-3 text-sm">
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-3">{{ widget.name }}</h3>
+                <div class="flex border-b border-gray-200 dark:border-gray-700 mb-3 text-sm">
                     <button
                         v-for="tab in tabs"
                         :key="tab.key"
@@ -22,7 +22,7 @@
                             'px-3 py-2 -mb-px border-b-2 font-medium',
                             activeTab === tab.key
                                 ? 'border-blue-600 text-blue-600'
-                                : 'border-transparent text-gray-600 hover:text-gray-900',
+                                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
                         ]"
                     >{{ tab.label }}</button>
                 </div>
@@ -39,14 +39,14 @@
                             <router-link
                                 v-if="item.post"
                                 :to="{ name: 'BlogPost', params: { slug: item.post.slug } }"
-                                class="text-gray-800 hover:text-blue-600 line-clamp-2"
+                                class="text-gray-800 dark:text-gray-200 hover:text-blue-600 line-clamp-2"
                             >{{ item.post.title }}</router-link>
                             <router-link
                                 v-else
                                 :to="{ name: 'BlogPost', params: { slug: item.slug } }"
-                                class="text-gray-800 hover:text-blue-600 line-clamp-2"
+                                class="text-gray-800 dark:text-gray-200 hover:text-blue-600 line-clamp-2"
                             >{{ item.title }}</router-link>
-                            <p class="text-xs text-gray-500 mt-0.5">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                 <template v-if="activeTab === 'popular'">{{ item.views }} views</template>
                                 <template v-else-if="activeTab === 'comments'">{{ item.name }}</template>
                                 <template v-else>{{ formatDate(item.published_at) }}</template>
@@ -54,15 +54,15 @@
                         </div>
                     </li>
                 </ul>
-                <p v-else class="text-sm text-gray-500">Nothing here yet.</p>
+                <p v-else class="text-sm text-gray-500 dark:text-gray-400">Nothing here yet.</p>
             </section>
 
             <!-- Category widget: heading + 5 recent posts in that category -->
             <section
                 v-else-if="widget.type === 'category'"
-                class="bg-white rounded-lg shadow-sm p-5"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5"
             >
-                <h3 class="text-base font-bold text-gray-900 mb-3">
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-3">
                     <router-link
                         v-if="widget.category"
                         :to="{ name: 'Category', params: { slug: widget.category.slug } }"
@@ -81,37 +81,37 @@
                         />
                         <router-link
                             :to="{ name: 'BlogPost', params: { slug: post.slug } }"
-                            class="text-gray-800 hover:text-blue-600 line-clamp-2"
+                            class="text-gray-800 dark:text-gray-200 hover:text-blue-600 line-clamp-2"
                         >{{ post.title }}</router-link>
                     </li>
                 </ul>
-                <p v-else class="text-sm text-gray-500">No posts in this category yet.</p>
+                <p v-else class="text-sm text-gray-500 dark:text-gray-400">No posts in this category yet.</p>
             </section>
 
             <!-- Video gallery (placeholder; YouTube channel id is in widget.settings) -->
             <section
                 v-else-if="widget.type === 'video'"
-                class="bg-white rounded-lg shadow-sm p-5"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5"
             >
-                <h3 class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
-                <p class="text-sm text-gray-500">Video gallery coming soon.</p>
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-3">{{ widget.name }}</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Video gallery coming soon.</p>
             </section>
 
             <!-- Arbitrary HTML -->
             <section
                 v-else-if="widget.type === 'html'"
-                class="bg-white rounded-lg shadow-sm p-5"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5"
             >
-                <h3 v-if="widget.name" class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
-                <div class="text-sm text-gray-700" v-html="widget.body"></div>
+                <h3 v-if="widget.name" class="text-base font-bold text-gray-900 dark:text-gray-100 mb-3">{{ widget.name }}</h3>
+                <div class="text-sm text-gray-700 dark:text-gray-300" v-html="widget.body"></div>
             </section>
 
             <!-- Social follow -->
             <section
                 v-else-if="widget.type === 'social'"
-                class="bg-white rounded-lg shadow-sm p-5"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5"
             >
-                <h3 class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-3">{{ widget.name }}</h3>
                 <div class="flex flex-wrap gap-2">
                     <a
                         v-for="(link, idx) in widget.links"
@@ -119,7 +119,7 @@
                         :href="link.url"
                         target="_blank"
                         rel="noopener"
-                        class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-blue-100 hover:text-blue-700"
+                        class="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-700 dark:hover:text-blue-200"
                     >{{ link.platform }}</a>
                 </div>
             </section>
@@ -127,36 +127,36 @@
             <!-- Archives dropdown -->
             <section
                 v-else-if="widget.type === 'archives'"
-                class="bg-white rounded-lg shadow-sm p-5"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5"
             >
-                <h3 class="text-base font-bold text-gray-900 mb-3">{{ widget.name }}</h3>
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-3">{{ widget.name }}</h3>
                 <select
                     v-if="widget.archives.length > 0"
                     @change="onArchiveChange"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
                 >
                     <option value="">Select month</option>
                     <option v-for="a in widget.archives" :key="a.key" :value="a.key">
                         {{ a.label }} ({{ a.count }})
                     </option>
                 </select>
-                <p v-else class="text-sm text-gray-500">No archives yet.</p>
+                <p v-else class="text-sm text-gray-500 dark:text-gray-400">No archives yet.</p>
             </section>
 
             <!-- Newsletter -->
             <section
                 v-else-if="widget.type === 'newsletter'"
-                class="bg-white rounded-lg shadow-sm p-5"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5"
             >
-                <h3 class="text-base font-bold text-gray-900 mb-2">{{ widget.name }}</h3>
-                <p class="text-sm text-gray-600 mb-3">Get new posts in your inbox.</p>
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-2">{{ widget.name }}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Get new posts in your inbox.</p>
                 <form @submit.prevent="subscribe" class="space-y-2">
                     <input
                         v-model="email"
                         type="email"
                         required
                         placeholder="you@example.com"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <button
                         type="submit"
@@ -170,7 +170,7 @@
             </section>
         </template>
 
-        <p v-if="!loading && data.widgets.length === 0" class="text-sm text-gray-500">
+        <p v-if="!loading && data.widgets.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
             No sidebar widgets configured.
         </p>
     </aside>

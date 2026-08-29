@@ -2,8 +2,8 @@
     <div>
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900">Sidebar Widgets</h2>
-                <p class="text-sm text-gray-500 mt-1">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Sidebar Widgets</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Drag-free list — use the up / down buttons to reorder, or just edit a widget's <code class="font-mono">order</code> field directly.
                 </p>
             </div>
@@ -16,13 +16,13 @@
         </div>
 
         <p v-if="error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ error }}</p>
-        <p v-if="loading" class="text-sm text-gray-500">Loading…</p>
+        <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
 
-        <p v-if="!loading && widgets.length === 0" class="text-sm text-gray-500">
+        <p v-if="!loading && widgets.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
             No widgets yet. Create one to populate the public sidebar.
         </p>
 
-        <div v-if="!loading && widgets.length > 0" class="bg-white shadow-sm rounded-lg overflow-hidden">
+        <div v-if="!loading && widgets.length > 0" class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
             <table class="min-w-full">
                 <thead class="bg-gray-50">
                     <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
@@ -35,19 +35,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="w in widgets" :key="w.id" class="border-t border-gray-200">
+                    <tr v-for="w in widgets" :key="w.id" class="border-t border-gray-200 dark:border-gray-700">
                         <td class="px-4 py-3 text-sm text-gray-500 font-mono">
                             <div class="flex items-center gap-1">
                                 <button
                                     type="button"
-                                    class="px-1 text-gray-400 hover:text-gray-700"
+                                    class="px-1 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                                     :disabled="w === widgets[0]"
                                     @click="move(w, -1)"
                                     title="Move up"
                                 >▲</button>
                                 <button
                                     type="button"
-                                    class="px-1 text-gray-400 hover:text-gray-700"
+                                    class="px-1 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                                     :disabled="w === widgets[widgets.length - 1]"
                                     @click="move(w, 1)"
                                     title="Move down"
@@ -55,9 +55,9 @@
                                 <span class="ml-1">{{ w.order }}</span>
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-900">{{ w.name }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ w.name }}</td>
                         <td class="px-4 py-3 text-sm text-gray-500 font-mono">{{ w.type }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-500">{{ w.position }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{{ w.position }}</td>
                         <td class="px-4 py-3 text-sm">
                             <button
                                 type="button"
@@ -71,11 +71,11 @@
                         <td class="px-4 py-3 text-right text-sm space-x-2">
                             <router-link
                                 :to="`/admin/settings/widgets/${w.id}`"
-                                class="text-blue-600 hover:underline"
+                                class="text-blue-600 dark:text-blue-400 hover:underline"
                             >Edit</router-link>
                             <button
                                 type="button"
-                                class="text-red-600 hover:underline"
+                                class="text-red-600 dark:text-red-400 hover:underline"
                                 @click="destroy(w)"
                             >Delete</button>
                         </td>

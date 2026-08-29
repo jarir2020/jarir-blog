@@ -1,31 +1,31 @@
 <template>
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-6">
             {{ isNew ? 'New widget' : 'Edit widget' }}
         </h2>
 
         <p v-if="error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ error }}</p>
         <p v-if="success" class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700">{{ success }}</p>
 
-        <form class="bg-white shadow-sm rounded-lg p-6 space-y-4" @submit.prevent="save">
+        <form class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 space-y-4" @submit.prevent="save">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="w-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <label for="w-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
                     <input
                         id="w-name"
                         v-model="form.name"
                         type="text"
                         required
                         maxlength="80"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
                 <div>
-                    <label for="w-type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <label for="w-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
                     <select
                         id="w-type"
                         v-model="form.type"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
                     >
                         <option value="popular_recent_comments">Popular / Recent / Comments</option>
                         <option value="category">Category list</option>
@@ -35,7 +35,7 @@
                         <option value="archives">Archives</option>
                         <option value="newsletter">Newsletter</option>
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Changing the type replaces the current settings — re-enter them below.
                     </p>
                 </div>
@@ -43,119 +43,119 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label for="w-position" class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                    <label for="w-position" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position</label>
                     <select
                         id="w-position"
                         v-model="form.position"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
                     >
                         <option value="right">Right sidebar</option>
                         <option value="left">Left sidebar</option>
                     </select>
                 </div>
                 <div>
-                    <label for="w-order" class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                    <label for="w-order" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order</label>
                     <input
                         id="w-order"
                         v-model.number="form.order"
                         type="number"
                         min="0"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
                     />
                 </div>
                 <div class="flex items-end">
                     <label class="inline-flex items-center">
                         <input v-model="form.enabled" type="checkbox" class="mr-2" />
-                        <span class="text-sm text-gray-700">Enabled (visible on public site)</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Enabled (visible on public site)</span>
                     </label>
                 </div>
             </div>
 
             <!-- Type-specific settings editor -->
             <div class="pt-4 border-t">
-                <h3 class="text-sm font-semibold text-gray-900 mb-3">Settings</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Settings</h3>
 
                 <div v-if="form.type === 'category'" class="space-y-3">
                     <div>
-                        <label for="w-cat" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <label for="w-cat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
                         <select
                             id="w-cat"
                             v-model.number="settings.category_id"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
                         >
                             <option :value="null">Select a category…</option>
                             <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
                         </select>
                     </div>
                     <div>
-                        <label for="w-cat-title" class="block text-sm font-medium text-gray-700 mb-1">Display title (optional)</label>
+                        <label for="w-cat-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display title (optional)</label>
                         <input
                             id="w-cat-title"
                             v-model="settings.title"
                             type="text"
                             maxlength="80"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
                         />
                     </div>
                 </div>
 
                 <div v-else-if="form.type === 'html'" class="space-y-3">
-                    <label for="w-html" class="block text-sm font-medium text-gray-700 mb-1">Body (HTML allowed)</label>
+                    <label for="w-html" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Body (HTML allowed)</label>
                     <textarea
                         id="w-html"
                         v-model="settings.body"
                         rows="6"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md font-mono text-sm"
                     />
-                    <p class="text-xs text-gray-500">Rendered with <code class="font-mono">v-html</code>. Be careful — the content is output as-is.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Rendered with <code class="font-mono">v-html</code>. Be careful — the content is output as-is.</p>
                 </div>
 
                 <div v-else-if="form.type === 'social'" class="space-y-3">
-                    <p class="text-sm text-gray-500">Add (platform, url) pairs.</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Add (platform, url) pairs.</p>
                     <div v-for="(link, idx) in settings.links" :key="idx" class="flex gap-2 items-center">
                         <input
                             v-model="link.platform"
                             type="text"
                             placeholder="facebook"
-                            class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md text-sm"
                         />
                         <input
                             v-model="link.url"
                             type="url"
                             placeholder="https://facebook.com/…"
-                            class="flex-[2] px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            class="flex-[2] px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md text-sm"
                         />
                         <button
                             type="button"
                             @click="settings.links.splice(idx, 1)"
-                            class="px-2 py-2 text-sm text-red-600 hover:underline"
+                            class="px-2 py-2 text-sm text-red-600 dark:text-red-400 hover:underline"
                         >Remove</button>
                     </div>
                     <button
                         type="button"
                         @click="settings.links.push({ platform: '', url: '' })"
-                        class="px-3 py-1.5 text-sm text-blue-600 hover:underline"
+                        class="px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                     >+ Add link</button>
                 </div>
 
                 <div v-else-if="form.type === 'video'" class="space-y-3">
-                    <label for="w-vid" class="block text-sm font-medium text-gray-700 mb-1">YouTube channel id (placeholder)</label>
+                    <label for="w-vid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">YouTube channel id (placeholder)</label>
                     <input
                         id="w-vid"
                         v-model="settings.placeholder"
                         type="text"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md"
                     />
-                    <p class="text-xs text-gray-500">The video gallery is a placeholder in this version — settings are stored but not yet rendered.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">The video gallery is a placeholder in this version — settings are stored but not yet rendered.</p>
                 </div>
 
-                <p v-else class="text-sm text-gray-500">No type-specific settings for this widget type.</p>
+                <p v-else class="text-sm text-gray-500 dark:text-gray-400">No type-specific settings for this widget type.</p>
             </div>
 
             <div class="flex justify-end gap-2 pt-2">
                 <router-link
                     to="/admin/settings/widgets"
-                    class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
                 >Cancel</router-link>
                 <button
                     type="submit"

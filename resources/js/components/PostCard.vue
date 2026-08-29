@@ -1,7 +1,7 @@
 <template>
     <article
         :class="[
-            'bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-100',
+            'bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700',
             variant === 'horizontal' ? 'flex flex-row' : 'flex flex-col h-full',
         ]"
     >
@@ -30,7 +30,7 @@
             >{{ primaryCategory.name }}</router-link>
             <h3
                 :class="[
-                    'font-bold text-gray-900 mt-1 line-clamp-2',
+                    'font-bold text-gray-900 dark:text-gray-100 mt-1 line-clamp-2',
                     variant === 'horizontal' ? 'text-sm' : 'text-lg',
                 ]"
             >
@@ -41,9 +41,9 @@
             </h3>
             <p
                 v-if="post.excerpt && variant !== 'horizontal'"
-                class="text-gray-600 text-sm mt-2 line-clamp-2"
+                class="text-gray-600 dark:text-gray-400 text-sm mt-2 line-clamp-2"
             >{{ post.excerpt }}</p>
-            <div class="mt-2 flex items-center gap-2 text-xs text-gray-500">
+            <div class="mt-2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <span v-if="post.author">{{ post.author.name }}</span>
                 <span v-if="post.author" aria-hidden="true">·</span>
                 <span>{{ formattedDate }}</span>

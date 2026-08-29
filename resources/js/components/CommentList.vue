@@ -1,17 +1,17 @@
 <template>
     <section class="mt-12">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             Comments ({{ comments.length }})
         </h2>
 
         <form
-            class="mb-8 bg-white rounded-lg shadow-sm p-6 space-y-4"
+            class="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 space-y-4"
             @submit.prevent="submit"
         >
-            <h3 class="text-lg font-semibold text-gray-900">Leave a comment</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Leave a comment</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1" for="comment-name">Name</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="comment-name">Name</label>
                     <input
                         id="comment-name"
                         v-model="form.name"
@@ -19,22 +19,22 @@
                         required
                         minlength="2"
                         maxlength="80"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1" for="comment-email">Email</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="comment-email">Email</label>
                     <input
                         id="comment-email"
                         v-model="form.email"
                         type="email"
                         required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="comment-body">Comment</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="comment-body">Comment</label>
                 <textarea
                     id="comment-body"
                     v-model="form.body"
@@ -42,11 +42,11 @@
                     minlength="2"
                     maxlength="4000"
                     rows="4"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
             </div>
-            <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
-            <p v-if="success" class="text-sm text-green-600">{{ success }}</p>
+            <p v-if="error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+            <p v-if="success" class="text-sm text-green-600 dark:text-green-400">{{ success }}</p>
             <div class="flex justify-end">
                 <button
                     type="submit"
@@ -62,16 +62,16 @@
             <li
                 v-for="comment in comments"
                 :key="comment.id"
-                class="bg-white rounded-lg shadow-sm p-6"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
             >
                 <div class="flex items-center justify-between mb-2">
-                    <h4 class="text-sm font-semibold text-gray-900">{{ comment.name }}</h4>
-                    <span class="text-xs text-gray-500">{{ formatDate(comment.created_at) }}</span>
+                    <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ comment.name }}</h4>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatDate(comment.created_at) }}</span>
                 </div>
-                <p class="text-gray-700 whitespace-pre-line">{{ comment.body }}</p>
+                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ comment.body }}</p>
             </li>
         </ul>
-        <p v-else class="text-sm text-gray-500">No comments yet. Be the first.</p>
+        <p v-else class="text-sm text-gray-500 dark:text-gray-400">No comments yet. Be the first.</p>
     </section>
 </template>
 

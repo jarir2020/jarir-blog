@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">Posts</h2>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Posts</h2>
             <router-link
                 to="/admin/posts/new"
                 class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
@@ -16,7 +16,7 @@
           selects trigger an immediate reload. Clearing any filter
           also reloads (and resets to page 1).
         -->
-        <div class="bg-white shadow-sm rounded-lg p-4 mb-4 flex flex-wrap items-end gap-3">
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 mb-4 flex flex-wrap items-end gap-3">
             <div class="flex-1 min-w-[220px]">
                 <label for="posts-search" class="block text-xs font-medium text-gray-600 mb-1">Search</label>
                 <input
@@ -24,7 +24,7 @@
                     v-model="search"
                     type="search"
                     placeholder="Search title, excerpt, or content…"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
             </div>
             <div class="w-40">
@@ -32,7 +32,7 @@
                 <select
                     id="posts-status"
                     v-model="statusId"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                     <option value="">All statuses</option>
                     <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.label }}</option>
@@ -43,7 +43,7 @@
                 <select
                     id="posts-category"
                     v-model="categoryId"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                     <option value="">All categories</option>
                     <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -52,7 +52,7 @@
             <button
                 v-if="hasActiveFilters"
                 type="button"
-                class="px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+                class="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                 @click="clearFilters"
             >
                 Clear
@@ -61,13 +61,13 @@
 
         <p v-if="error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ error }}</p>
 
-        <p v-if="loading" class="text-sm text-gray-500">Loading…</p>
+        <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
 
-        <p v-if="!loading && !error && posts.length === 0" class="text-sm text-gray-500">
+        <p v-if="!loading && !error && posts.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
             No posts match your filters.
         </p>
 
-        <table v-if="!loading && posts.length > 0" class="min-w-full bg-white shadow-sm rounded-lg overflow-hidden">
+        <table v-if="!loading && posts.length > 0" class="min-w-full bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
             <thead class="bg-gray-50">
                 <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
                     <th class="px-4 py-3">Title</th>
@@ -79,8 +79,8 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="post in posts" :key="post.id" class="border-t border-gray-200">
-                    <td class="px-4 py-3 text-sm text-gray-900">{{ post.title }}</td>
+                <tr v-for="post in posts" :key="post.id" class="border-t border-gray-200 dark:border-gray-700">
+                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ post.title }}</td>
                     <td class="px-4 py-3 text-sm">
                         <span
                             v-if="post.status"
@@ -91,16 +91,16 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 text-sm">{{ post.is_featured ? '⭐' : '' }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">{{ post.views }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-500">{{ formatDate(post.updated_at) }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ post.views }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{{ formatDate(post.updated_at) }}</td>
                     <td class="px-4 py-3 text-right text-sm space-x-2">
                         <router-link
                             :to="`/admin/posts/${post.id}`"
-                            class="text-blue-600 hover:underline"
+                            class="text-blue-600 dark:text-blue-400 hover:underline"
                         >Edit</router-link>
                         <button
                             type="button"
-                            class="text-red-600 hover:underline"
+                            class="text-red-600 dark:text-red-400 hover:underline"
                             @click="destroy(post)"
                         >Delete</button>
                     </td>
@@ -110,13 +110,13 @@
 
         <nav v-if="lastPage > 1" class="mt-6 flex justify-center gap-2">
             <button
-                class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                 :disabled="currentPage <= 1"
                 @click="load(currentPage - 1)"
             >Previous</button>
             <span class="px-4 py-2 bg-blue-600 text-white rounded">{{ currentPage }} / {{ lastPage }}</span>
             <button
-                class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                 :disabled="currentPage >= lastPage"
                 @click="load(currentPage + 1)"
             >Next</button>

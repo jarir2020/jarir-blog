@@ -1,16 +1,16 @@
 <template>
     <div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-6">
             {{ isNew ? 'New tag' : 'Edit tag' }}
         </h2>
 
         <p v-if="error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ error }}</p>
         <p v-if="success" class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700">{{ success }}</p>
 
-        <form class="bg-white shadow-sm rounded-lg p-6 space-y-4" @submit.prevent="save">
+        <form class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 space-y-4" @submit.prevent="save">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="tag-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <label for="tag-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
                     <input
                         id="tag-name"
                         v-model="form.name"
@@ -18,37 +18,37 @@
                         required
                         minlength="2"
                         maxlength="60"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
                 <div>
-                    <label for="tag-slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+                    <label for="tag-slug" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slug</label>
                     <input
                         id="tag-slug"
                         v-model="form.slug"
                         type="text"
                         maxlength="60"
                         placeholder="Auto-generated from name"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
             </div>
 
             <div>
-                <label for="tag-color" class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <label for="tag-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Color</label>
                 <div class="flex items-center gap-2 max-w-md">
                     <input
                         id="tag-color"
                         v-model="form.color"
                         type="color"
-                        class="h-10 w-12 border border-gray-300 rounded-md cursor-pointer"
+                        class="h-10 w-12 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer"
                     />
                     <input
                         v-model="form.color"
                         type="text"
                         maxlength="7"
                         pattern="^#[0-9a-fA-F]{6}$"
-                        class="flex-1 px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
             </div>
@@ -56,7 +56,7 @@
             <div class="flex justify-end gap-2 pt-2">
                 <router-link
                     to="/admin/settings/tags"
-                    class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
                 >Cancel</router-link>
                 <button
                     type="submit"

@@ -2,21 +2,21 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
-                <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">
+                <p v-if="error" class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm text-red-700 dark:text-red-300">
                     {{ error }}
                 </p>
 
-                <div v-if="author" class="mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <h1 class="text-3xl font-bold text-gray-900">{{ author.name }}</h1>
-                    <p class="text-sm text-gray-500 mt-1">@{{ author.handle }}</p>
-                    <p class="text-gray-600 mt-3">
+                <div v-if="author" class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ author.name }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">@{{ author.handle }}</p>
+                    <p class="text-gray-600 dark:text-gray-400 mt-3">
                         {{ author.posts_count }} published {{ author.posts_count === 1 ? 'post' : 'posts' }}
                     </p>
                 </div>
 
-                <p v-if="loading" class="text-sm text-gray-500">Loading posts…</p>
+                <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Loading posts…</p>
 
-                <div v-if="!loading && posts.length === 0 && !error" class="text-sm text-gray-500">
+                <div v-if="!loading && posts.length === 0 && !error" class="text-sm text-gray-500 dark:text-gray-400">
                     No published posts by this author yet.
                 </div>
 
@@ -26,7 +26,7 @@
 
                 <nav v-if="lastPage > 1" class="mt-8 flex justify-center gap-2">
                     <button
-                        class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                         :disabled="currentPage <= 1"
                         @click="changePage(currentPage - 1)"
                     >Previous</button>
@@ -34,7 +34,7 @@
                         {{ currentPage }} / {{ lastPage }}
                     </span>
                     <button
-                        class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                         :disabled="currentPage >= lastPage"
                         @click="changePage(currentPage + 1)"
                     >Next</button>

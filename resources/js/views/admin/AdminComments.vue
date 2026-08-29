@@ -1,13 +1,13 @@
 <template>
     <div>
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">Comments</h2>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Comments</h2>
             <div class="flex gap-1 bg-gray-100 p-1 rounded-md text-sm">
                 <button
                     v-for="option in filters"
                     :key="option.value"
                     type="button"
-                    :class="filter === option.value ? 'bg-white shadow' : ''"
+                    :class="filter === option.value ? 'bg-white dark:bg-gray-800 dark:border dark:border-gray-700 shadow' : ''"
                     class="px-3 py-1.5 rounded-md"
                     @click="setFilter(option.value)"
                 >{{ option.label }}</button>
@@ -15,38 +15,38 @@
         </div>
 
         <p v-if="error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ error }}</p>
-        <p v-if="loading" class="text-sm text-gray-500">Loading…</p>
+        <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
 
         <ul v-if="!loading" class="space-y-3">
             <li
                 v-for="comment in comments"
                 :key="comment.id"
-                class="bg-white rounded-lg shadow-sm p-4"
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4"
             >
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
-                        <div class="flex items-center gap-2 text-sm text-gray-500">
-                            <strong class="text-gray-900">{{ comment.name }}</strong>
+                        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                            <strong class="text-gray-900 dark:text-gray-100">{{ comment.name }}</strong>
                             <span>&lt;{{ comment.email }}&gt;</span>
                             <span>·</span>
                             <span>{{ formatDate(comment.created_at) }}</span>
                             <span
                                 v-if="!comment.approved"
-                                class="ml-2 px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800"
+                                class="ml-2 px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800 dark:text-yellow-300"
                             >Pending</span>
                             <span
                                 v-else
                                 class="ml-2 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800"
                             >Approved</span>
-                            <span v-if="comment.post" class="ml-2 text-xs text-gray-500">
+                            <span v-if="comment.post" class="ml-2 text-xs text-gray-500 dark:text-gray-400">
                                 on
                                 <router-link
                                     :to="{ name: 'BlogPost', params: { slug: comment.post.slug } }"
-                                    class="text-blue-600 hover:underline"
+                                    class="text-blue-600 dark:text-blue-400 hover:underline"
                                 >{{ comment.post.title }}</router-link>
                             </span>
                         </div>
-                        <p class="mt-2 text-gray-700 whitespace-pre-line">{{ comment.body }}</p>
+                        <p class="mt-2 text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ comment.body }}</p>
                     </div>
                     <div class="flex flex-col gap-2 text-sm">
                         <button
@@ -71,7 +71,7 @@
             </li>
         </ul>
 
-        <p v-if="!loading && comments.length === 0" class="text-sm text-gray-500">
+        <p v-if="!loading && comments.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
             No comments.
         </p>
     </div>

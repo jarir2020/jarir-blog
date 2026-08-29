@@ -3,12 +3,12 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Main column -->
             <div class="lg:col-span-2">
-                <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">
+                <p v-if="error" class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm text-red-700 dark:text-red-300">
                     {{ error }}
                 </p>
-                <p v-if="loading" class="text-sm text-gray-500">Loading post…</p>
+                <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Loading post…</p>
 
-                <article v-if="post" class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <article v-if="post" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                     <!-- Featured image -->
                     <img
                         v-if="post.featured_image"
@@ -22,19 +22,19 @@
                         <router-link
                             v-if="primaryCategory"
                             :to="{ name: 'Category', params: { slug: primaryCategory.slug } }"
-                            class="text-sm text-blue-600 font-semibold uppercase tracking-wider hover:underline"
+                            class="text-sm text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider hover:underline"
                         >{{ primaryCategory.name }}</router-link>
 
-                        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-4">
+                        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mt-2 mb-4">
                             {{ post.title }}
                         </h1>
 
-                        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
+                        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
                             <span v-if="post.author">
                                 By
                                 <router-link
                                     :to="{ name: 'Author', params: { username: post.author.handle ?? authorHandle(post.author.name) } }"
-                                    class="text-blue-600 hover:underline"
+                                    class="text-blue-600 dark:text-blue-400 hover:underline"
                                 >{{ post.author.name }}</router-link>
                             </span>
                             <span>{{ publishedDate }}</span>
@@ -43,35 +43,35 @@
                         </div>
 
                         <!-- Share bar 1 (below meta) -->
-                        <div class="mb-6 pb-6 border-b">
+                        <div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                             <ShareBar :url="shareUrl" :title="post.title" label="Share:" />
                         </div>
 
-                        <div v-if="post.excerpt" class="text-lg text-gray-600 italic mb-6">
+                        <div v-if="post.excerpt" class="text-lg text-gray-600 dark:text-gray-400 italic mb-6">
                             {{ post.excerpt }}
                         </div>
 
-                        <div class="prose prose-lg max-w-none">
+                        <div class="prose prose-lg dark:prose-invert max-w-none">
                             <p
                                 v-for="(paragraph, idx) in paragraphs"
                                 :key="idx"
-                                class="text-gray-700 leading-relaxed mb-6 whitespace-pre-line"
+                                class="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 whitespace-pre-line"
                             >{{ paragraph }}</p>
                         </div>
 
                         <!-- Share bar 2 (after body) -->
-                        <div class="mt-6 pt-6 border-t">
+                        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <ShareBar :url="shareUrl" :title="post.title" label="Share this:" />
                         </div>
 
                         <!-- Tags -->
-                        <div v-if="post.tags && post.tags.length > 0" class="mt-6 pt-6 border-t">
+                        <div v-if="post.tags && post.tags.length > 0" class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <div class="flex flex-wrap gap-2">
                                 <router-link
                                     v-for="tag in post.tags"
                                     :key="tag.id"
                                     :to="{ name: 'Search', query: { q: tag.name } }"
-                                    class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-blue-100 hover:text-blue-700"
+                                    class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-700 dark:hover:text-blue-200"
                                 >#{{ tag.name }}</router-link>
                             </div>
                         </div>
@@ -82,7 +82,7 @@
 
                 <!-- Read Next -->
                 <section v-if="related.length > 0" class="mt-12">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Read Next</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Read Next</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <PostCard
                             v-for="relatedPost in related"

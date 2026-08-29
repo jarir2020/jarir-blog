@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Phase 7 — dark mode polish.
+ *
+ * `color-scheme: dark` tells the browser to use dark native
+ * scrollbars, form controls (date pickers, etc.), and selection
+ * colors. The `dark` class on <html> is set by the FOUC inline
+ * script in the site / admin layouts, so this activates the
+ * moment the page paints — no flash.
+ */
+.dark {
+    color-scheme: dark;
+}
+
+/* Slightly higher-contrast placeholder text on dark inputs. */
+.dark ::placeholder {
+    color: #6b7280;
+}

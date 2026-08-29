@@ -12,6 +12,33 @@ Blade view and bundled by Vite.
 - **Breeze** for registration / login / password reset / profile
 - **MySQL** for local dev (SQLite works too — see [Configuration](#configuration))
 
+## Themes (dark / light)
+
+The site ships with a dark / light theme toggle in the top utility
+bar. The choice is stored in `localStorage` under the `theme` key
+(`"light"`, `"dark"`, or absent for "follow `prefers-color-scheme`").
+
+- **Tailwind** is configured with `darkMode: 'class'` — a `dark`
+  class on `<html>` flips every `dark:` variant.
+- **FOUC prevention**: an inline `<script>` in `<head>` reads
+  `localStorage.theme` and adds the class *before* the body paints,
+  so dark-mode users never see a white flash.
+- **Vue composable**: `resources/js/composables/theme.js` exports
+  `useTheme()` plus a `window.__theme` shim so the topbar's
+  hand-rolled click handler can reach it.
+- **Admin**: the admin main content area follows the public theme;
+  the admin sidebar stays dark (it's editorial chrome — easier to
+  read against a dark background, and the visual focus stays
+  consistent regardless of theme).
+- **What stays the same in both modes**: the top utility bar, the
+  footer, the back-to-top button, the share-bar icons, and the
+  admin sidebar — all of these are intentionally always dark.
+
+To opt a new component out of the dark variants, don't add
+`dark:` pairs at all (the class won't apply). To force a component
+to always be light, prefix every color with `dark:` (e.g.
+`dark:bg-white`).
+
 ## Quick start
 
 ```bash
@@ -184,6 +211,8 @@ See [improvement_plan.md](improvement_plan.md) for the full plan. In short:
 - **Phase 3** ✅ Sidebar, author pages, comments, newsletter, SEO, RSS.
 - **Phase 4** ✅ Admin / CMS: post CRUD, comment moderation, `/admin` SPA.
 - **Phase 5** ✅ ESLint, Prettier, Pint, CI workflow, related-posts endpoint, more tests.
+- **Phase 6** ✅ Farabiblog-style public redesign: top utility bar, content + right sidebar, dark footer, social share bar, Read Next, admin-managed widget system (`widgets` table, `SidebarResolver` service, admin CRUD).
+- **Phase 7** ✅ Dark / light theme: Tailwind `darkMode: 'class'`, FOUC-free inline script, topbar toggle, system-preference detection, `localStorage` persistence. Admin main area follows the public theme; admin sidebar stays dark.
 
 ## Test coverage summary
 
@@ -195,7 +224,9 @@ See [improvement_plan.md](improvement_plan.md) for the full plan. In short:
 | Phase 3 (features) | 28 | sidebar, authors, comments, newsletter, RSS, view counts |
 | Phase 4 (admin)    | 33 | role middleware, post CRUD, comment moderation, /admin SPA |
 | Phase 5 (quality)  | 21 | related endpoint, route ordering, API edge cases |
-| **Total phase tests** | **142** | All green. Pre-existing `EmailVerificationTest` (Breeze) is the only failure left. |
+| Phase 6 (redesign) | 7 | sidebar `widgets` key, widget CRUD, settings cast |
+| Phase 7 (themes)   | 9 | FOUC script, toggle button, body class, admin sidebar guard, CSS color-scheme |
+| **Total phase tests** | **~159** | All green (224 including the Breeze test classes). |
 
 ## License
 

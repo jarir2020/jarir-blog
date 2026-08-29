@@ -3,17 +3,17 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
                 <div class="mb-6">
-                    <h1 class="text-3xl font-bold text-gray-900">Category: {{ categoryName }}</h1>
-                    <p class="text-gray-600 mt-2">Browse all posts in this category</p>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Category: {{ categoryName }}</h1>
+                    <p class="text-gray-600 dark:text-gray-400 mt-2">Browse all posts in this category</p>
                 </div>
 
-                <p v-if="error" class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">
+                <p v-if="error" class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 p-4 text-sm text-red-700 dark:text-red-300">
                     {{ error }}
                 </p>
 
-                <p v-if="loading" class="text-sm text-gray-500">Loading posts…</p>
+                <p v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">Loading posts…</p>
 
-                <p v-if="!loading && posts.length === 0 && !error" class="text-sm text-gray-500">
+                <p v-if="!loading && posts.length === 0 && !error" class="text-sm text-gray-500 dark:text-gray-400">
                     No published posts in this category yet.
                 </p>
 
@@ -23,7 +23,7 @@
 
                 <nav v-if="lastPage > 1" class="mt-8 flex justify-center gap-2">
                     <button
-                        class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                         :disabled="currentPage <= 1"
                         @click="changePage(currentPage - 1)"
                     >Previous</button>
@@ -31,7 +31,7 @@
                         {{ currentPage }} / {{ lastPage }}
                     </span>
                     <button
-                        class="px-4 py-2 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"
+                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                         :disabled="currentPage >= lastPage"
                         @click="changePage(currentPage + 1)"
                     >Next</button>
