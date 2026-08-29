@@ -74,6 +74,13 @@ const routes = [
             { path: 'settings/widgets',       name: 'AdminWidgets',    component: () => import('../views/admin/AdminWidgets.vue') },
             { path: 'settings/widgets/new',   name: 'AdminWidgetNew',  component: () => import('../views/admin/AdminWidgetEdit.vue') },
             { path: 'settings/widgets/:id',   name: 'AdminWidgetEdit', component: () => import('../views/admin/AdminWidgetEdit.vue') },
+
+            // Phase 8 — admin-editable social links. The public
+            // topbar and footer read these via a view composer in
+            // AppServiceProvider.
+            { path: 'settings/social-links',       name: 'AdminSocialLinks',    component: () => import('../views/admin/AdminSocialLinks.vue') },
+            { path: 'settings/social-links/new',   name: 'AdminSocialLinkNew',  component: () => import('../views/admin/AdminSocialLinkEdit.vue') },
+            { path: 'settings/social-links/:id',   name: 'AdminSocialLinkEdit', component: () => import('../views/admin/AdminSocialLinkEdit.vue') },
         ],
     },
 ];

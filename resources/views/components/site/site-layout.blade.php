@@ -96,9 +96,20 @@
                 <a href="/api/posts/random" id="random-post-link" class="hover:text-white" data-random>Random</a>
             </div>
             <div class="flex items-center gap-3">
-                <a href="https://facebook.com" class="hover:text-white" aria-label="Facebook">Facebook</a>
-                <a href="https://twitter.com" class="hover:text-white" aria-label="Twitter / X">X</a>
-                <a href="https://youtube.com" class="hover:text-white" aria-label="YouTube">YouTube</a>
+                {{-- Brand social links (Phase 8). The view composer in
+                     AppServiceProvider injects $socialLinks as the
+                     enabled list ordered by `order, id`. --}}
+                @foreach ($socialLinks ?? [] as $link)
+                    <a
+                        href="{{ $link->url }}"
+                        class="hover:text-white inline-flex items-center"
+                        aria-label="{{ $link->label }}"
+                        @if (! str_starts_with($link->url, url('/'))) target="_blank" rel="noopener"@endif
+                    >
+                        <x-site._social-icon :platform="$link->icon" class="w-4 h-4" />
+                        <span class="sr-only">{{ $link->label }}</span>
+                    </a>
+                @endforeach
                 @auth
                     <span class="text-gray-600">|</span>
                     <a href="{{ route('dashboard') }}" class="hover:text-white">Dashboard</a>
@@ -187,10 +198,21 @@
                 </div>
                 <div>
                     <h3 class="text-white font-bold mb-3">Follow</h3>
-                    <div class="flex gap-3">
-                        <a href="https://facebook.com" class="hover:text-white" aria-label="Facebook">Facebook</a>
-                        <a href="https://twitter.com" class="hover:text-white" aria-label="Twitter / X">X</a>
-                        <a href="https://youtube.com" class="hover:text-white" aria-label="YouTube">YouTube</a>
+                    <div class="flex flex-wrap gap-3">
+                        {{-- Same social links as the topbar (Phase 8).
+                             Footer block shows icon + label for the
+                             same social-list the topbar uses. --}}
+                        @foreach ($socialLinks ?? [] as $link)
+                            <a
+                                href="{{ $link->url }}"
+                                class="hover:text-white inline-flex items-center gap-1.5"
+                                aria-label="{{ $link->label }}"
+                                @if (! str_starts_with($link->url, url('/'))) target="_blank" rel="noopener"@endif
+                            >
+                                <x-site._social-icon :platform="$link->icon" class="w-4 h-4" />
+                                <span>{{ $link->label }}</span>
+                            </a>
+                        @endforeach
                     </div>
                 </div>
             </div>

@@ -29,6 +29,7 @@ Route::prefix('api')->group(function () {
     Route::get('/categories/{slug}/posts', [PostController::class, 'byCategory']);
     Route::get('/search', [PostController::class, 'search']);
     Route::get('/sidebar', [\App\Http\Controllers\Api\SidebarController::class, 'index']);
+    Route::get('/social-links', [\App\Http\Controllers\Api\SocialLinkController::class, 'index']);
 
     Route::get('/authors/{username}', [\App\Http\Controllers\Api\AuthorController::class, 'show']);
     Route::get('/authors/{username}/posts', [\App\Http\Controllers\Api\AuthorController::class, 'posts']);
@@ -76,6 +77,12 @@ Route::prefix('api')->group(function () {
         // these via /api/sidebar's `widgets` key (resolved server-side
         // by App\Support\SidebarResolver).
         Route::apiResource('admin/widgets', \App\Http\Controllers\Api\Admin\WidgetController::class);
+
+        // Phase 8 — admin-editable social links. The public
+        // site-layout reads these via a view composer in
+        // AppServiceProvider (one source of truth for the topbar
+        // and footer).
+        Route::apiResource('admin/social-links', \App\Http\Controllers\Api\Admin\SocialLinkController::class);
     });
 });
 

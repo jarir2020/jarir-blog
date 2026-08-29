@@ -71,6 +71,7 @@
                     <a href="/admin/settings/categories" class="block pl-9 pr-3 py-1.5 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/settings/categories*') ? 'bg-gray-800 text-white' : '' }}">Categories</a>
                     <a href="/admin/settings/tags" class="block pl-9 pr-3 py-1.5 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/settings/tags*') ? 'bg-gray-800 text-white' : '' }}">Tags</a>
                     <a href="/admin/settings/widgets" class="block pl-9 pr-3 py-1.5 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/settings/widgets*') ? 'bg-gray-800 text-white' : '' }}">Widgets</a>
+                    <a href="/admin/settings/social-links" class="block pl-9 pr-3 py-1.5 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/settings/social-links*') ? 'bg-gray-800 text-white' : '' }}">Social Links</a>
                 </details>
 
                 <a href="/admin/comments" class="flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/comments*') ? 'bg-gray-800 text-white' : '' }}">
