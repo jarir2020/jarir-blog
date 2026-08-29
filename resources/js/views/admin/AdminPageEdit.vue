@@ -51,6 +51,46 @@
                 />
             </div>
 
+            <!-- Hero image: uploaded to /api/admin/images and the
+                 returned URL is saved as hero_image. We also accept
+                 a URL paste in case the admin wants to point at an
+                 existing image. -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hero image</label>
+                <div v-if="form.hero_image" class="mb-2">
+                    <img
+                        :src="form.hero_image"
+                        alt=""
+                        class="w-full max-w-md h-32 object-cover rounded border border-gray-200 dark:border-gray-700"
+                        @error="(e) => (e.target.style.display = 'none')"
+                    />
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <label class="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
+                        <span v-if="uploading">Uploading…</span>
+                        <span v-else>Upload image</span>
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            class="hidden"
+                            @change="upload"
+                        />
+                    </label>
+                    <input
+                        v-model="form.hero_image"
+                        type="url"
+                        placeholder="…or paste an image URL"
+                        class="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md font-mono text-sm"
+                    />
+                    <button
+                        v-if="form.hero_image"
+                        type="button"
+                        class="px-2 py-2 text-sm text-red-600 dark:text-red-400 hover:underline"
+                        @click="form.hero_image = ''"
+                    >Remove</button>
+                </div>
+            </div>
+
             <div>
                 <label for="p-body" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Body (Markdown)</label>
                 <textarea
@@ -124,6 +164,7 @@ const router = useRouter();
 const error = ref(null);
 const success = ref(null);
 const saving = ref(false);
+const uploading = ref(false);
 const allPages = ref([]);
 
 const isNew = computed(() => route.name === 'AdminPageNew');
@@ -132,16 +173,13 @@ const form = ref({
     slug: '',
     title: '',
     excerpt: '',
+    hero_image: '',
     body: '',
     parent_slug: '',
     order: 0,
     enabled: true,
 });
 
-// Parent options: only show top-level pages (parent_slug is null)
-// as parent candidates. Admins can pick "(none)" to make a new
-// top-level page. We exclude the current page so a page can't be
-// its own parent.
 const parentOptions = computed(() =>
     allPages.value
         .filter((p) => !p.parent_slug && p.id !== (Number(route.params.id) || 0))
@@ -166,6 +204,7 @@ const loadPage = async (id) => {
             slug: p.slug,
             title: p.title,
             excerpt: p.excerpt ?? '',
+            hero_image: p.hero_image ?? '',
             body: p.body,
             parent_slug: p.parent_slug ?? '',
             order: p.order ?? 0,
@@ -176,13 +215,33 @@ const loadPage = async (id) => {
     }
 };
 
+const upload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    uploading.value = true;
+    error.value = null;
+    try {
+        const fd = new FormData();
+        fd.append('image', file);
+        const { data } = await axios.post('/api/admin/images', fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        form.value.hero_image = data.url;
+    } catch (e) {
+        error.value = e?.response?.data?.message ?? 'Image upload failed.';
+    } finally {
+        uploading.value = false;
+        // Reset the file input so uploading the same file again fires
+        // the change event.
+        event.target.value = '';
+    }
+};
+
 const save = async () => {
     error.value = null;
     success.value = null;
     saving.value = true;
     try {
-        // Empty parent_slug means "top-level page" — the controller
-        // expects null, not an empty string.
         const payload = { ...form.value, parent_slug: form.value.parent_slug || null };
         if (isNew.value) {
             const { data } = await axios.post('/api/admin/pages', payload);

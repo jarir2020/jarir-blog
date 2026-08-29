@@ -96,6 +96,7 @@ class PageController extends Controller
             'slug' => ['required', 'string', 'max:80', 'regex:/^[a-z0-9][a-z0-9\-\/]*$/', $this->uniqueSlugRule($ignoreId)],
             'title' => ['required', 'string', 'min:1', 'max:160'],
             'excerpt' => ['nullable', 'string', 'max:500'],
+            'hero_image' => ['nullable', 'string', 'max:500'],
             'body' => ['required', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],
             'enabled' => ['boolean'],

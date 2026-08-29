@@ -45,6 +45,7 @@ class PageController extends Controller
                 'slug' => $page->slug,
                 'title' => $page->title,
                 'excerpt' => $page->excerpt,
+                'hero_image' => $page->hero_image,
                 'body' => $page->body,
                 'body_html' => $markdown->render($page->body),
                 'parent_slug' => $page->parent_slug,

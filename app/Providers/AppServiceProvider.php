@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Page;
 use App\Models\SocialLink;
 use App\Support\MarkdownRenderer;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,18 +27,31 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Phase 8 — inject the admin-managed social links into the
-        // public site layout. Both the top utility bar and the
-        // footer iterate `$socialLinks`, so we run the query once
-        // per request (Eloquent caches it within the same request)
-        // and the chrome reads from a single source of truth.
-        //
-        // The Schema::hasTable guard keeps pre-migration test
+        // Schema::hasTable guards keep pre-migration test
         // environments (e.g. Phase0RoutesTest, which exercises the
         // route file before any data is set up) from blowing up.
         View::composer('components.site.site-layout', function ($view) {
-            $view->with('socialLinks', \Illuminate\Support\Facades\Schema::hasTable('social_links')
+            $view->with('socialLinks', Schema::hasTable('social_links')
                 ? SocialLink::query()->enabled()->ordered()->get()
+                : collect());
+
+            // Phase 9 — pages that appear in the chrome nav
+            // (masthead + footer). We include:
+            //   - top-level pages (parent_slug IS NULL), e.g.
+            //     "about", "contact"
+            //   - sub-pages of the "about" parent, e.g.
+            //     "about/our-mission", "about/our-team"
+            // Other sub-pages (a future "docs/something") stay
+            // reachable only by direct URL.
+            $view->with('navPages', Schema::hasTable('pages')
+                ? Page::query()
+                    ->enabled()
+                    ->where(function ($q) {
+                        $q->whereNull('parent_slug')
+                            ->orWhere('parent_slug', 'about');
+                    })
+                    ->ordered()
+                    ->get()
                 : collect());
         });
     }

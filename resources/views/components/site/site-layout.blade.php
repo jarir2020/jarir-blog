@@ -167,6 +167,21 @@
                         >{{ $category->name }}</a>
                     @endforeach
                 </div>
+                {{-- Phase 9 — admin-managed page nav (About, Our
+                     Mission, Our Team, Our Vision, What We Offer,
+                     Contact, …). The list comes from the view
+                     composer in AppServiceProvider; sub-pages of
+                     any non-"about" parent are excluded. --}}
+                @if (! empty($navPages) && $navPages->count() > 0)
+                    <div class="flex items-center gap-1 overflow-x-auto py-1 text-sm border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
+                        @foreach ($navPages as $page)
+                            <a
+                                href="/{{ $page->slug }}"
+                                class="px-3 py-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-800 hover:text-blue-600 font-medium whitespace-nowrap {{ request()->is($page->slug) || request()->is($page->slug.'/*') || ($page->slug === 'about' && request()->is('about*')) ? 'text-blue-600 dark:text-blue-400' : '' }}"
+                            >{{ $page->title }}</a>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </nav>
     </header>
@@ -191,8 +206,13 @@
                     <h3 class="text-white font-bold mb-3">Explore</h3>
                     <ul class="space-y-1">
                         <li><a href="/" class="hover:text-white">Home</a></li>
-                        <li><a href="/about" class="hover:text-white">About</a></li>
-                        <li><a href="/contact" class="hover:text-white">Contact</a></li>
+                        {{-- Phase 9 — admin-managed page nav, same
+                             list the masthead uses. --}}
+                        @foreach ($navPages ?? [] as $page)
+                            <li>
+                                <a href="/{{ $page->slug }}" class="hover:text-white">{{ $page->title }}</a>
+                            </li>
+                        @endforeach
                         <li><a href="/feed.xml" class="hover:text-white">RSS</a></li>
                     </ul>
                 </div>

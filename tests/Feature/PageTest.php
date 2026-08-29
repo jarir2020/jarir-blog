@@ -204,9 +204,10 @@ class PageTest extends TestCase
         \Illuminate\Support\Facades\DB::table('pages')->insert([
             ['slug' => 'about', 'title' => 'About Us', 'body' => 'b', 'order' => 1, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
             ['slug' => 'about/our-mission', 'title' => 'Our Mission', 'body' => 'b', 'order' => 1, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'about/what-we-offer', 'title' => 'What We Offer', 'body' => 'b', 'order' => 2, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'about/our-team', 'title' => 'Our Team', 'body' => 'b', 'order' => 3, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
-            ['slug' => 'about/contact-us', 'title' => 'Contact Us', 'body' => 'b', 'order' => 4, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'about/our-vision', 'title' => 'Our Vision', 'body' => 'b', 'order' => 2, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'about/what-we-offer', 'title' => 'What We Offer', 'body' => 'b', 'order' => 3, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'about/our-team', 'title' => 'Our Team', 'body' => 'b', 'order' => 4, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
+            ['slug' => 'about/contact-us', 'title' => 'Contact Us', 'body' => 'b', 'order' => 5, 'enabled' => true, 'parent_slug' => 'about', 'created_at' => $now, 'updated_at' => $now],
             ['slug' => 'contact', 'title' => 'Contact Us', 'body' => 'b', 'order' => 2, 'enabled' => true, 'parent_slug' => null, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
@@ -219,7 +220,31 @@ class PageTest extends TestCase
         $this->assertTrue($contact->enabled);
 
         $subs = Page::where('parent_slug', 'about')->get();
-        $this->assertCount(4, $subs);
+        $this->assertCount(5, $subs, 'About has 5 sub-pages: our-mission, our-vision, what-we-offer, our-team, contact-us.');
+
+        $this->assertNotNull(Page::where('slug', 'about/our-vision')->first());
+    }
+
+    public function test_page_show_includes_hero_image(): void
+    {
+        Page::create([
+            'slug' => 'about',
+            'title' => 'About',
+            'body' => 'b',
+            'hero_image' => '/storage/posts/abc.jpg',
+            'enabled' => true,
+        ]);
+
+        $response = $this->getJson('/api/pages/about')->assertOk();
+        $this->assertSame('/storage/posts/abc.jpg', $response->json('page.hero_image'));
+    }
+
+    public function test_page_show_hero_image_is_null_when_not_set(): void
+    {
+        Page::create(['slug' => 'about', 'title' => 'About', 'body' => 'b', 'enabled' => true]);
+
+        $response = $this->getJson('/api/pages/about')->assertOk();
+        $this->assertNull($response->json('page.hero_image'));
     }
 
     public function test_markdown_renderer_service_strips_script_tags(): void

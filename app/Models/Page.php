@@ -20,6 +20,7 @@ class Page extends Model
         'slug',
         'title',
         'excerpt',
+        'hero_image',
         'body',
         'order',
         'enabled',
