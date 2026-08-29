@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Post;
+use App\Models\Status;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -21,6 +22,10 @@ class PostFactory extends Factory
 
     public function definition(): array
     {
+        // Look up the seeded `published` row once per factory call
+        // (not per-row). The migration guarantees the row exists, so
+        // this resolves to a real id without ever inserting.
+        $publishedId = Status::where('slug', 'published')->value('id');
         $title = $this->faker->unique()->sentence(6);
 
         return [
@@ -30,7 +35,7 @@ class PostFactory extends Factory
             'excerpt' => $this->faker->paragraph(),
             'content' => implode("\n\n", $this->faker->paragraphs(4)),
             'featured_image' => null,
-            'status' => 'published',
+            'status_id' => $publishedId,
             'is_featured' => false,
             'published_at' => now()->subMinutes($this->faker->numberBetween(1, 10000)),
         ];
@@ -38,10 +43,22 @@ class PostFactory extends Factory
 
     public function draft(): self
     {
-        return $this->state(fn () => [
-            'status' => 'draft',
-            'published_at' => null,
-        ]);
+        return $this->state(function () {
+            $draftId = Status::where('slug', 'draft')->value('id');
+            if (! $draftId) {
+                $draftId = Status::firstOrCreate(['slug' => 'draft'], [
+                    'name' => 'Draft',
+                    'label' => 'Draft',
+                    'color' => '#facc15',
+                    'order' => 1,
+                ])->id;
+            }
+
+            return [
+                'status_id' => $draftId,
+                'published_at' => null,
+            ];
+        });
     }
 
     public function featured(): self

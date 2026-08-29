@@ -31,10 +31,10 @@ class SidebarController extends Controller
             ->get(['id', 'title', 'slug', 'views']);
 
         $tags = Tag::whereHas('posts', function ($q) {
-            $q->where('status', 'published');
+            $q->whereHas('status', fn ($sq) => $sq->where('slug', 'published'));
         })
             ->withCount(['posts' => function ($q) {
-                $q->where('status', 'published');
+                $q->whereHas('status', fn ($sq) => $sq->where('slug', 'published'));
             }])
             ->orderByDesc('posts_count')
             ->limit(20)

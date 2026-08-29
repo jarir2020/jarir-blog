@@ -26,7 +26,7 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <link rel="canonical" href="{{ url()->current() }}">
 
-    @vite(['resources/css/app.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased">
     <div class="flex min-h-screen">
@@ -41,7 +41,25 @@
             <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
                 <a href="/admin" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin') ? 'bg-gray-800 text-white' : '' }}">Dashboard</a>
                 <a href="/admin/posts" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/posts*') ? 'bg-gray-800 text-white' : '' }}">Posts</a>
-                <a href="/admin/posts/new" class="flex items-center px-3 py-2 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/posts/new') ? 'bg-gray-800 text-white' : '' }}">New post</a>
+
+                {{-- Post Settings: collapsible group of taxonomy CRUD pages.
+                     Uses <details> so the expand/collapse works without
+                     JavaScript. The `open` attribute is set when we're
+                     inside any /admin/settings/* URL so the group stays
+                     expanded while drilling in. --}}
+                @php $isSettings = request()->is('admin/settings*'); @endphp
+                <details class="space-y-0.5" {{ $isSettings ? 'open' : '' }}>
+                    <summary class="flex items-center px-3 py-2 rounded-md cursor-pointer list-none hover:bg-gray-800 hover:text-white {{ $isSettings ? 'text-white' : '' }}">
+                        <span>Post Settings</span>
+                        <svg class="ml-auto w-4 h-4 transition-transform details-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </summary>
+                    <a href="/admin/settings/statuses" class="block pl-9 pr-3 py-1.5 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/settings/statuses*') ? 'bg-gray-800 text-white' : '' }}">Status</a>
+                    <a href="/admin/settings/categories" class="block pl-9 pr-3 py-1.5 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/settings/categories*') ? 'bg-gray-800 text-white' : '' }}">Categories</a>
+                    <a href="/admin/settings/tags" class="block pl-9 pr-3 py-1.5 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/settings/tags*') ? 'bg-gray-800 text-white' : '' }}">Tags</a>
+                </details>
+
                 <a href="/admin/comments" class="flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-800 hover:text-white {{ request()->is('admin/comments*') ? 'bg-gray-800 text-white' : '' }}">
                     <span>Comments</span>
                     @if ($pendingComments > 0)
@@ -51,6 +69,13 @@
                     @endif
                 </a>
             </nav>
+            {{-- Rotate the chevron when the <details> is open. Strip the
+                 default disclosure triangle too — the SVG above is what
+                 we actually want users to see. --}}
+            <style>
+                details > summary::-webkit-details-marker { display: none; }
+                details[open] .details-chevron { transform: rotate(180deg); }
+            </style>
             <div class="px-3 py-4 border-t border-gray-800 text-sm">
                 <a href="/" class="block px-3 py-2 text-gray-400 hover:text-white">← Back to blog</a>
             </div>

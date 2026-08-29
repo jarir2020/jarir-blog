@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\Status;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 /**
- * Phase 4 — admin post CRUD.
+ * Phase 5 — admin post CRUD.
  *
  *   GET    /api/admin/posts            paginated, includes drafts
  *   POST   /api/admin/posts            create
@@ -20,6 +21,10 @@ use Illuminate\Support\Str;
  *
  * Behind auth + admin middleware. Slugs are auto-generated from the
  * title and made unique by suffixing -2, -3, ... on collision.
+ *
+ * Status is now a FK (`status_id` -> `statuses.id`) instead of a string
+ * column. We accept `status_id` and auto-stamp `published_at` when the
+ * chosen status's slug is `published`.
  */
 class PostController extends Controller
 {
@@ -27,9 +32,48 @@ class PostController extends Controller
     {
         $perPage = $request->integer('per_page') ?: 20;
 
-        $posts = Post::with(['author', 'categories', 'tags'])
-            ->orderBy('updated_at', 'desc')
-            ->paginate($perPage);
+        $query = Post::with(['author', 'categories', 'tags', 'status'])
+            ->orderBy('updated_at', 'desc');
+
+        // Free-text search across title + excerpt + content. `like` is
+        // fine here — the admin list is small and the LIKE clauses hit
+        // the same indexes the public search uses. If this ever grows
+        // we'll switch to a FULLTEXT index; the controller contract
+        // (the `q` param) stays the same.
+        $search = trim((string) $request->query('q', ''));
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+            $query->where(function ($q) use ($like) {
+                $q->where('title', 'like', $like)
+                    ->orWhere('excerpt', 'like', $like)
+                    ->orWhere('content', 'like', $like);
+            });
+        }
+
+        // Status filter. Accept either `status_id` (preferred) or
+        // `status` (a slug) for back-compat with the old hardcoded
+        // enum callers. Empty / unknown values are ignored.
+        $statusId = $request->integer('status_id');
+        if ($statusId > 0) {
+            $query->where('status_id', $statusId);
+        } else {
+            $statusSlug = $request->query('status');
+            if (is_string($statusSlug) && $statusSlug !== '') {
+                $resolvedId = Status::where('slug', $statusSlug)->value('id');
+                if ($resolvedId) {
+                    $query->where('status_id', $resolvedId);
+                }
+            }
+        }
+
+        // Category filter. Posts can belong to multiple categories, so
+        // we go through the pivot table rather than a column on `posts`.
+        $categoryId = $request->integer('category_id');
+        if ($categoryId > 0) {
+            $query->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId));
+        }
+
+        $posts = $query->paginate($perPage)->appends($request->query());
 
         $posts->getCollection()->each(function (Post $post) {
             $post->reading_time = \App\Support\PostMeta::readingTime($post->content);
@@ -41,7 +85,7 @@ class PostController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $post = Post::with(['author', 'categories', 'tags'])->findOrFail($id);
+        $post = Post::with(['author', 'categories', 'tags', 'status'])->findOrFail($id);
         $post->reading_time = \App\Support\PostMeta::readingTime($post->content);
         $post->word_count = \App\Support\PostMeta::wordCount($post->content);
 
@@ -55,13 +99,15 @@ class PostController extends Controller
             'excerpt' => ['nullable', 'string', 'max:500'],
             'content' => ['required', 'string', 'min:2'],
             'featured_image' => ['nullable', 'string', 'max:500'],
-            'status' => ['required', 'in:draft,published,archived'],
+            'status_id' => ['required', 'integer', 'exists:statuses,id'],
             'is_featured' => ['boolean'],
             'category_ids' => ['array'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
             'tag_ids' => ['array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
         ])->validate();
+
+        $status = Status::find($data['status_id']);
 
         $post = new Post([
             'author_id' => $request->user()->id,
@@ -70,9 +116,9 @@ class PostController extends Controller
             'excerpt' => $data['excerpt'] ?? null,
             'content' => $data['content'],
             'featured_image' => $data['featured_image'] ?? null,
-            'status' => $data['status'],
+            'status_id' => $data['status_id'],
             'is_featured' => $data['is_featured'] ?? false,
-            'published_at' => $data['status'] === 'published' ? now() : null,
+            'published_at' => $status?->slug === 'published' ? now() : null,
         ]);
         $post->save();
 
@@ -83,7 +129,7 @@ class PostController extends Controller
             $post->tags()->sync($data['tag_ids']);
         }
 
-        $post->load(['author', 'categories', 'tags']);
+        $post->load(['author', 'categories', 'tags', 'status']);
 
         return response()->json(['post' => $post], 201);
     }
@@ -97,7 +143,7 @@ class PostController extends Controller
             'excerpt' => ['nullable', 'string', 'max:500'],
             'content' => ['sometimes', 'required', 'string', 'min:2'],
             'featured_image' => ['nullable', 'string', 'max:500'],
-            'status' => ['sometimes', 'required', 'in:draft,published,archived'],
+            'status_id' => ['sometimes', 'required', 'integer', 'exists:statuses,id'],
             'is_featured' => ['boolean'],
             'category_ids' => ['array'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
@@ -114,15 +160,25 @@ class PostController extends Controller
             $post->slug = $this->uniqueSlug($request->input('slug'), $post->id);
         }
 
-        foreach (['title', 'excerpt', 'content', 'featured_image', 'status', 'is_featured'] as $field) {
+        foreach (['title', 'excerpt', 'content', 'featured_image', 'status_id', 'is_featured'] as $field) {
             if (array_key_exists($field, $data)) {
                 $post->{$field} = $data[$field];
             }
         }
 
-        // Bump published_at the first time a post is published.
-        if (isset($data['status']) && $data['status'] === 'published' && $post->published_at === null) {
-            $post->published_at = now();
+        // Auto-stamp `published_at` the first time the post is moved
+        // to the `published` status. Clear it if the post is moved
+        // back to draft / archived so the published-scope filter
+        // hides it immediately.
+        if (array_key_exists('status_id', $data)) {
+            $status = Status::find($data['status_id']);
+            if ($status?->slug === 'published') {
+                if ($post->published_at === null) {
+                    $post->published_at = now();
+                }
+            } else {
+                $post->published_at = null;
+            }
         }
 
         $post->save();
@@ -134,7 +190,7 @@ class PostController extends Controller
             $post->tags()->sync($data['tag_ids'] ?? []);
         }
 
-        $post->load(['author', 'categories', 'tags']);
+        $post->load(['author', 'categories', 'tags', 'status']);
 
         return response()->json(['post' => $post]);
     }

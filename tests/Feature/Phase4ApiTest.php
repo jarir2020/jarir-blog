@@ -69,12 +69,13 @@ class Phase4ApiTest extends TestCase
         $admin = $this->admin();
         $category = Category::factory()->create();
         $tag = Tag::factory()->create();
+        $publishedId = \App\Models\Status::where('slug', 'published')->value('id');
 
         $response = $this->actingAs($admin)->postJson('/api/admin/posts', [
             'title' => 'My first admin post',
             'content' => 'Hello world.',
             'excerpt' => 'A first post',
-            'status' => 'published',
+            'status_id' => $publishedId,
             'is_featured' => true,
             'category_ids' => [$category->id],
             'tag_ids' => [$tag->id],
@@ -84,7 +85,7 @@ class Phase4ApiTest extends TestCase
             ->assertJsonPath('post.title', 'My first admin post')
             ->assertJsonPath('post.slug', 'my-first-admin-post')
             ->assertJsonPath('post.is_featured', true)
-            ->assertJsonPath('post.status', 'published');
+            ->assertJsonPath('post.status_id', $publishedId);
 
         $post = Post::first();
         $this->assertNotNull($post);
@@ -100,7 +101,7 @@ class Phase4ApiTest extends TestCase
         $this->actingAs($admin)
             ->postJson('/api/admin/posts', [])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['title', 'content', 'status']);
+            ->assertJsonValidationErrors(['title', 'content', 'status_id']);
     }
 
     public function test_admin_create_post_rejects_invalid_status(): void
@@ -110,25 +111,27 @@ class Phase4ApiTest extends TestCase
             ->postJson('/api/admin/posts', [
                 'title' => 'Bad',
                 'content' => 'body',
-                'status' => 'invalid',
+                'status_id' => 99999,
             ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['status']);
+            ->assertJsonValidationErrors(['status_id']);
     }
 
     public function test_admin_can_update_a_post(): void
     {
         $admin = $this->admin();
-        $post = Post::factory()->create(['title' => 'Old title', 'status' => 'draft']);
+        $draftId = \App\Models\Status::where('slug', 'draft')->value('id');
+        $publishedId = \App\Models\Status::where('slug', 'published')->value('id');
+        $post = Post::factory()->create(['title' => 'Old title', 'status_id' => $draftId]);
 
         $this->actingAs($admin)
             ->putJson("/api/admin/posts/{$post->id}", [
                 'title' => 'New title',
-                'status' => 'published',
+                'status_id' => $publishedId,
             ])
             ->assertOk()
             ->assertJsonPath('post.title', 'New title')
-            ->assertJsonPath('post.status', 'published');
+            ->assertJsonPath('post.status_id', $publishedId);
 
         $this->assertSame('New title', $post->fresh()->title);
         $this->assertNotNull($post->fresh()->published_at, 'Bumping to published must set published_at.');
@@ -148,6 +151,7 @@ class Phase4ApiTest extends TestCase
     public function test_admin_update_can_keep_existing_slug(): void
     {
         $admin = $this->admin();
+        $publishedId = \App\Models\Status::where('slug', 'published')->value('id');
         $post = Post::factory()->create(['title' => 'Same', 'slug' => 'kept-slug']);
 
         $this->actingAs($admin)
@@ -155,7 +159,7 @@ class Phase4ApiTest extends TestCase
                 'title' => 'Same',
                 'slug' => 'kept-slug',
                 'content' => 'still body',
-                'status' => 'published',
+                'status_id' => $publishedId,
             ])
             ->assertOk()
             ->assertJsonPath('post.slug', 'kept-slug');
@@ -200,13 +204,14 @@ class Phase4ApiTest extends TestCase
     public function test_admin_post_create_generates_unique_slugs(): void
     {
         $admin = $this->admin();
+        $draftId = \App\Models\Status::where('slug', 'draft')->value('id');
         Post::factory()->create(['slug' => 'duplicate-title']);
 
         $this->actingAs($admin)
             ->postJson('/api/admin/posts', [
                 'title' => 'Duplicate title',
                 'content' => 'body',
-                'status' => 'draft',
+                'status_id' => $draftId,
             ])
             ->assertCreated()
             ->assertJsonPath('post.slug', 'duplicate-title-2');

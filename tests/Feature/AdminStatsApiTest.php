@@ -30,9 +30,11 @@ class AdminStatsApiTest extends TestCase
     public function test_stats_counts_posts_by_status(): void
     {
         $admin = $this->admin();
-        Post::factory()->count(3)->create(['status' => 'published']);
-        Post::factory()->count(2)->create(['status' => 'draft']);
-        Post::factory()->count(1)->create(['status' => 'archived']);
+        Post::factory()->count(3)->create();
+        $draftId = \App\Models\Status::where('slug', 'draft')->value('id');
+        Post::factory()->count(2)->create(['status_id' => $draftId, 'published_at' => null]);
+        $archivedId = \App\Models\Status::where('slug', 'archived')->value('id');
+        Post::factory()->count(1)->create(['status_id' => $archivedId]);
 
         $response = $this->actingAs($admin)->getJson('/api/admin/stats')->assertOk();
 

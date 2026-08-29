@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Post;
+use App\Models\Status;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -28,9 +29,29 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $user = $this->seedUser();
+        $this->seedStatuses();
+        $publishedStatusId = Status::where('slug', 'published')->value('id');
         $categories = $this->seedCategories();
         $tags = $this->seedTags();
-        $this->seedPosts($user, $categories, $tags);
+        $this->seedPosts($user, $categories, $tags, $publishedStatusId);
+    }
+
+    /**
+     * Phase 5 — make sure the seeded statuses exist. The
+     * `create_statuses_table` migration inserts them too, so this is
+     * a no-op for fresh DBs and a safety net for environments where
+     * someone ran an older seed and then re-ran it.
+     */
+    private function seedStatuses(): void
+    {
+        $defaults = [
+            ['name' => 'Draft',     'slug' => 'draft',     'label' => 'Draft',     'color' => '#facc15', 'description' => 'Not yet visible to readers.', 'order' => 1],
+            ['name' => 'Published', 'slug' => 'published', 'label' => 'Published', 'color' => '#22c55e', 'description' => 'Live on the public site.',         'order' => 2],
+            ['name' => 'Archived',  'slug' => 'archived',  'label' => 'Archived',  'color' => '#6b7280', 'description' => 'Hidden but kept for reference.',  'order' => 3],
+        ];
+        foreach ($defaults as $row) {
+            Status::updateOrCreate(['slug' => $row['slug']], $row);
+        }
     }
 
     private function seedUser(): User
@@ -102,7 +123,7 @@ class DatabaseSeeder extends Seeder
      * @param  array<string, Category>  $categories
      * @param  array<string, Tag>  $tags
      */
-    private function seedPosts(User $user, array $categories, array $tags): void
+    private function seedPosts(User $user, array $categories, array $tags, int $publishedStatusId): void
     {
         $categoryNames = array_keys($categories);
         $tagNames = array_keys($tags);
@@ -122,7 +143,7 @@ class DatabaseSeeder extends Seeder
                 'excerpt' => $this->excerptFor($i),
                 'content' => $this->bodyFor($i),
                 'featured_image' => null,
-                'status' => 'published',
+                'status_id' => $publishedStatusId,
                 'is_featured' => $i <= 3, // first three are featured
                 'published_at' => now()->subHours($i * 5),
             ]);

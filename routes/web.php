@@ -56,8 +56,18 @@ Route::prefix('api')->group(function () {
         Route::delete('/admin/comments/{id}', [\App\Http\Controllers\Api\Admin\CommentController::class, 'destroy']);
 
         Route::get('/admin/subscribers', [\App\Http\Controllers\Api\Admin\SubscriberController::class, 'index']);
-        Route::get('/admin/tags', [\App\Http\Controllers\Api\Admin\TagController::class, 'index']);
         Route::get('/admin/stats', [\App\Http\Controllers\Api\Admin\StatsController::class, 'show']);
+
+        // Phase 5 — taxonomy CRUD. Statuses and categories are full
+        // API resources (apiResource). Tags only have explicit
+        // store/update/destroy on top of the existing index because we
+        // don't have a need for a public `show` endpoint.
+        Route::apiResource('admin/statuses', \App\Http\Controllers\Api\Admin\StatusController::class);
+        Route::apiResource('admin/categories', \App\Http\Controllers\Api\Admin\CategoryController::class);
+        Route::post('/admin/tags', [\App\Http\Controllers\Api\Admin\TagController::class, 'store']);
+        Route::put('/admin/tags/{tag}', [\App\Http\Controllers\Api\Admin\TagController::class, 'update']);
+        Route::delete('/admin/tags/{tag}', [\App\Http\Controllers\Api\Admin\TagController::class, 'destroy']);
+        Route::get('/admin/tags', [\App\Http\Controllers\Api\Admin\TagController::class, 'index']);
     });
 });
 

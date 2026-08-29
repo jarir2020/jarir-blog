@@ -164,7 +164,7 @@ class Phase1ApiTest extends TestCase
             'slug' => 'featured-test',
             'content' => 'Body',
             'is_featured' => 1,
-            'status' => 'published',
+            'status_id' => \App\Models\Status::where('slug', 'published')->value('id'),
             'published_at' => now(),
         ]);
 

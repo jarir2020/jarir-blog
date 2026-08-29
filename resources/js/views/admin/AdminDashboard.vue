@@ -77,9 +77,10 @@
                                 >{{ post.title }}</router-link>
                                 <p class="text-xs text-gray-500 mt-0.5">
                                     <span
-                                        :class="statusClass(post.status)"
+                                        v-if="post.status"
+                                        :style="statusStyle(post.status)"
                                         class="px-1.5 py-0.5 rounded-full text-xs"
-                                    >{{ post.status }}</span>
+                                    >{{ post.status.label }}</span>
                                     <span v-if="post.author" class="ml-2">{{ post.author.name }}</span>
                                 </p>
                             </div>
@@ -162,11 +163,16 @@ const load = async () => {
     }
 };
 
-const statusClass = (status) => ({
-    'bg-green-100 text-green-800': status === 'published',
-    'bg-yellow-100 text-yellow-800': status === 'draft',
-    'bg-gray-100 text-gray-800': status === 'archived',
-});
+// Render the status pill using the admin-configured color. Falls
+// back to a neutral gray if a status somehow has no color set.
+const statusStyle = (status) => {
+    const color = status?.color || '#6b7280';
+    return {
+        backgroundColor: `${color}22`,
+        color,
+        border: `1px solid ${color}55`,
+    };
+};
 
 onMounted(load);
 </script>

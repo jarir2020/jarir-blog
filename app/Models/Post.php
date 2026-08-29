@@ -17,7 +17,7 @@ class Post extends Model
         'excerpt',
         'content',
         'featured_image',
-        'status',
+        'status_id',
         'is_featured',
         'views',
         'published_at',
@@ -35,6 +35,11 @@ class Post extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(Status::class);
+    }
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
@@ -47,7 +52,11 @@ class Post extends Model
 
     public function scopePublished($query)
     {
-        return $query->where('status', 'published')
+        // Filter by `statuses.slug = 'published'` rather than the old
+        // hardcoded string so renames in the admin don't break the
+        // public site. The seeded slug matches the old enum value
+        // so this is a drop-in replacement.
+        return $query->whereHas('status', fn ($q) => $q->where('slug', 'published'))
             ->where('published_at', '<=', now());
     }
 

@@ -48,12 +48,10 @@
                     <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                     <select
                         id="status"
-                        v-model="form.status"
+                        v-model.number="form.status_id"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md"
                     >
-                        <option value="draft">Draft</option>
-                        <option value="published">Published</option>
-                        <option value="archived">Archived</option>
+                        <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.label }}</option>
                     </select>
                 </div>
                 <div>
@@ -143,14 +141,15 @@ const success = ref(null);
 const saving = ref(false);
 const categories = ref([]);
 const tags = ref([]);
+const statuses = ref([]);
 
-const isNew = computed(() => route.params.id === 'new');
+const isNew = computed(() => route.name === 'AdminPostNew');
 
 const form = ref({
     title: '',
     excerpt: '',
     content: '',
-    status: 'draft',
+    status_id: null,
     is_featured: false,
     featured_image: '',
     category_ids: [],
@@ -158,12 +157,22 @@ const form = ref({
 });
 
 const loadMeta = async () => {
-    const [{ data: catData }, { data: tagData }] = await Promise.all([
-        axios.get('/api/categories'),
-        axios.get('/api/admin/tags').catch(() => ({ data: { data: [] } })),
+    // Categories come from the public endpoint, tags from the admin
+    // list, statuses from the new admin/statuses endpoint. Failures
+    // on any of these shouldn't block the form — we just leave the
+    // corresponding dropdown empty.
+    const [catRes, tagRes, statusRes] = await Promise.all([
+        axios.get('/api/categories').catch(() => ({ data: [] })),
+        axios.get('/api/admin/tags', { params: { per_page: 100 } }).catch(() => ({ data: { data: [] } })),
+        axios.get('/api/admin/statuses', { params: { per_page: 100 } }).catch(() => ({ data: { data: [] } })),
     ]);
-    categories.value = Array.isArray(catData) ? catData : catData.data ?? [];
-    tags.value = tagData.data ?? [];
+    categories.value = Array.isArray(catRes.data) ? catRes.data : catRes.data?.data ?? [];
+    tags.value = tagRes.data.data ?? [];
+    statuses.value = (statusRes.data.data ?? []).sort((a, b) => a.order - b.order);
+    // Default to the first status (usually "draft") for new posts.
+    if (isNew.value && form.value.status_id === null && statuses.value.length > 0) {
+        form.value.status_id = statuses.value[0].id;
+    }
 };
 
 const loadPost = async (id) => {
@@ -174,7 +183,7 @@ const loadPost = async (id) => {
         title: p.title,
         excerpt: p.excerpt ?? '',
         content: p.content,
-        status: p.status,
+        status_id: p.status_id ?? p.status?.id ?? null,
         is_featured: p.is_featured,
         featured_image: p.featured_image ?? '',
         category_ids: p.categories.map((c) => c.id),

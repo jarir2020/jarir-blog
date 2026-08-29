@@ -51,7 +51,8 @@ class Phase2ApiTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->assertGreaterThan(0, Post::where('is_featured', true)->count());
-        $this->assertSame(30, Post::where('status', 'published')->count());
+        $publishedId = \App\Models\Status::where('slug', 'published')->value('id');
+        $this->assertSame(30, Post::where('status_id', $publishedId)->count());
     }
 
     public function test_seeder_attaches_categories_and_tags_to_posts(): void

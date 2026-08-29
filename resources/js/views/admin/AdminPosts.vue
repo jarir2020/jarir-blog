@@ -10,11 +10,64 @@
             </router-link>
         </div>
 
+        <!--
+          Search + filter bar. We debounce the search input so each
+          keystroke doesn't fire a request, but the status/category
+          selects trigger an immediate reload. Clearing any filter
+          also reloads (and resets to page 1).
+        -->
+        <div class="bg-white shadow-sm rounded-lg p-4 mb-4 flex flex-wrap items-end gap-3">
+            <div class="flex-1 min-w-[220px]">
+                <label for="posts-search" class="block text-xs font-medium text-gray-600 mb-1">Search</label>
+                <input
+                    id="posts-search"
+                    v-model="search"
+                    type="search"
+                    placeholder="Search title, excerpt, or content…"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+            </div>
+            <div class="w-40">
+                <label for="posts-status" class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <select
+                    id="posts-status"
+                    v-model="statusId"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">All statuses</option>
+                    <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.label }}</option>
+                </select>
+            </div>
+            <div class="w-48">
+                <label for="posts-category" class="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                <select
+                    id="posts-category"
+                    v-model="categoryId"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">All categories</option>
+                    <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+                </select>
+            </div>
+            <button
+                v-if="hasActiveFilters"
+                type="button"
+                class="px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+                @click="clearFilters"
+            >
+                Clear
+            </button>
+        </div>
+
         <p v-if="error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ error }}</p>
 
         <p v-if="loading" class="text-sm text-gray-500">Loading…</p>
 
-        <table v-if="!loading" class="min-w-full bg-white shadow-sm rounded-lg overflow-hidden">
+        <p v-if="!loading && !error && posts.length === 0" class="text-sm text-gray-500">
+            No posts match your filters.
+        </p>
+
+        <table v-if="!loading && posts.length > 0" class="min-w-full bg-white shadow-sm rounded-lg overflow-hidden">
             <thead class="bg-gray-50">
                 <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
                     <th class="px-4 py-3">Title</th>
@@ -29,8 +82,12 @@
                 <tr v-for="post in posts" :key="post.id" class="border-t border-gray-200">
                     <td class="px-4 py-3 text-sm text-gray-900">{{ post.title }}</td>
                     <td class="px-4 py-3 text-sm">
-                        <span :class="statusClass(post.status)" class="px-2 py-0.5 rounded-full text-xs">
-                            {{ post.status }}
+                        <span
+                            v-if="post.status"
+                            :style="statusStyle(post.status)"
+                            class="px-2 py-0.5 rounded-full text-xs"
+                        >
+                            {{ post.status.label }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-sm">{{ post.is_featured ? '⭐' : '' }}</td>
@@ -69,7 +126,7 @@
 
 <script setup>
 import axios from 'axios';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { formatDate } from '../../composables/format';
 
 const loading = ref(true);
@@ -78,11 +135,31 @@ const posts = ref([]);
 const currentPage = ref(1);
 const lastPage = ref(1);
 
+// Filter state. Bound to the form controls above. We watch each of
+// these (debounced for `search`) and re-run the query against page 1.
+const search = ref('');
+const statusId = ref('');
+const categoryId = ref('');
+const categories = ref([]);
+const statuses = ref([]);
+
+const hasActiveFilters = computed(
+    () => search.value !== '' || statusId.value !== '' || categoryId.value !== '',
+);
+
+const buildParams = (page = 1) => {
+    const params = { page, per_page: 20 };
+    if (search.value.trim() !== '') params.q = search.value.trim();
+    if (statusId.value !== '') params.status_id = statusId.value;
+    if (categoryId.value !== '') params.category_id = categoryId.value;
+    return params;
+};
+
 const load = async (page = 1) => {
     loading.value = true;
     error.value = null;
     try {
-        const { data } = await axios.get('/api/admin/posts', { params: { page, per_page: 20 } });
+        const { data } = await axios.get('/api/admin/posts', { params: buildParams(page) });
         posts.value = data.data ?? [];
         currentPage.value = data.current_page ?? 1;
         lastPage.value = data.last_page ?? 1;
@@ -103,11 +180,57 @@ const destroy = async (post) => {
     }
 };
 
-const statusClass = (status) => ({
-    'bg-green-100 text-green-800': status === 'published',
-    'bg-yellow-100 text-yellow-800': status === 'draft',
-    'bg-gray-100 text-gray-800': status === 'archived',
-});
+// Render the status pill using the admin-configured color. Falls back
+// to a neutral gray if a status somehow has no color set.
+const statusStyle = (status) => {
+    const color = status?.color || '#6b7280';
+    return {
+        backgroundColor: `${color}22`, // 13% alpha for the bg
+        color,
+        border: `1px solid ${color}55`,
+    };
+};
 
-onMounted(() => load(1));
+const clearFilters = () => {
+    search.value = '';
+    statusId.value = '';
+    categoryId.value = '';
+};
+
+// Debounce the search input so each keystroke doesn't fire a request.
+// The dropdowns trigger an immediate reload — there's only one event
+// per change, no debounce needed.
+let searchTimer = null;
+watch(search, () => {
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => load(1), 300);
+});
+watch(statusId, () => load(1));
+watch(categoryId, () => load(1));
+
+const loadCategories = async () => {
+    try {
+        const { data } = await axios.get('/api/categories', { headers: { Accept: 'application/json' } });
+        categories.value = Array.isArray(data) ? data : data?.data ?? [];
+    } catch {
+        // Non-fatal — the filter just shows "All categories" only.
+        categories.value = [];
+    }
+};
+
+const loadStatuses = async () => {
+    try {
+        const { data } = await axios.get('/api/admin/statuses', { params: { per_page: 100 } });
+        statuses.value = (data.data ?? []).sort((a, b) => a.order - b.order);
+    } catch {
+        // Non-fatal — filter just shows "All statuses" only.
+        statuses.value = [];
+    }
+};
+
+onMounted(() => {
+    loadCategories();
+    loadStatuses();
+    load(1);
+});
 </script>
