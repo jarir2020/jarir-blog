@@ -88,7 +88,7 @@ class AdminStatsApiTest extends TestCase
 
         $this->actingAs($admin)->getJson('/api/admin/stats')
             ->assertOk()
-            ->assertJsonPath('users', 5); // 4 from the factory + the admin
+            ->assertJsonPath('users', 6); // 4 from the factory + the admin + the demo user seeded by the base TestCase
     }
 
     public function test_stats_recent_posts_is_limited_to_five(): void
